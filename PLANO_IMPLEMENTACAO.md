@@ -42,7 +42,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 02 — Frontend: fundação da interface
 - [x] Ciclo 03 — Backend: contratos e configurações
 - [x] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
-- [ ] Ciclo 05 — Backend: leitura e divisão de documentos
+- [x] Ciclo 05 — Backend: leitura e divisão de documentos
 - [ ] Ciclo 06 — Frontend: tela da base de conhecimento
 - [ ] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
 - [ ] Ciclo 08 — Frontend: integração da base de conhecimento
@@ -169,24 +169,24 @@ O ciclo estará concluído quando o frontend detectar a disponibilidade do backe
 
 ### Implementação
 
-- [ ] Criar uma interface comum para extração de texto.
-- [ ] Implementar extração de TXT e Markdown.
-- [ ] Implementar extração de PDF com preservação do número da página.
-- [ ] Implementar extração de DOCX.
-- [ ] Validar extensão, MIME type e tamanho do arquivo.
-- [ ] Calcular hash do conteúdo para identificar duplicidade.
-- [ ] Implementar normalização do texto.
-- [ ] Implementar divisão em trechos com tamanho e sobreposição configuráveis.
-- [ ] Preservar metadados de nome, página, posição e tipo de arquivo.
-- [ ] Rejeitar documentos vazios ou sem texto extraível.
+- [x] Criar uma interface comum para extração de texto.
+- [x] Implementar extração de TXT e Markdown.
+- [x] Implementar extração de PDF com preservação do número da página.
+- [x] Implementar extração de DOCX.
+- [x] Validar extensão, MIME type e tamanho do arquivo.
+- [x] Calcular hash do conteúdo para identificar duplicidade.
+- [x] Implementar normalização do texto.
+- [x] Implementar divisão em trechos com tamanho e sobreposição configuráveis.
+- [x] Preservar metadados de nome, página, posição e tipo de arquivo.
+- [x] Rejeitar documentos vazios ou sem texto extraível.
 
 ### Validação
 
-- [ ] Testar extração de cada formato suportado.
-- [ ] Testar chunking, sobreposição e metadados.
-- [ ] Testar arquivo inválido, vazio e duplicado.
-- [ ] Adicionar arquivos pequenos de teste sem dados sensíveis.
-- [ ] Registrar os comandos executados no diário.
+- [x] Testar extração de cada formato suportado.
+- [x] Testar chunking, sobreposição e metadados.
+- [x] Testar arquivo inválido, vazio e duplicado.
+- [x] Adicionar arquivos pequenos de teste sem dados sensíveis.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -492,3 +492,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm run typecheck` — aprovado; `npm run build` — aprovado com 46 módulos; chamada no formato do frontend para `/api/v1/health` — HTTP 200; preflight CORS — HTTP 200 com origem `http://localhost:5173`.
 - Pendências: dados do chat permanecem simulados por desenho do plano até o Ciclo 10.
 - Próximo ciclo: Ciclo 05 — Backend: leitura e divisão de documentos
+
+### 2026-08-27 — Ciclo 05
+
+- Status: concluído
+- Implementado: interface comum de extração, suporte a TXT/Markdown/PDF/DOCX, validação de extensão/MIME/tamanho, hash SHA-256, normalização Unicode, chunking configurável e metadados determinísticos com página.
+- Arquivos principais: `BACKEND/app/services/documents/extractors.py`, `BACKEND/app/services/documents/processor.py`, `BACKEND/app/models/documents.py`, `BACKEND/tests/test_document_processor.py`, `BACKEND/tests/fixtures/`.
+- Validações: `python -m pytest -q` — 21 testes aprovados; 11 testes específicos de documentos cobrindo formatos, página, chunking, normalização, MIME, vazio e duplicidade.
+- Pendências: nenhuma no Ciclo 05.
+- Próximo ciclo: Ciclo 06 — Frontend: tela da base de conhecimento
