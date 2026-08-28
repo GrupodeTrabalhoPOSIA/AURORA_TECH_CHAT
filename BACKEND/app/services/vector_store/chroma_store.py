@@ -8,6 +8,7 @@ import chromadb
 
 from app.core.errors import AppError
 from app.models.documents import DocumentResponse, ProcessedDocument
+from app.models.rag import RetrievedChunk
 
 COLLECTION_NAME = "aurora_tech_documents"
 
@@ -105,3 +106,36 @@ class ChromaVectorStore:
             )
         self.collection.delete(where={"document_id": document_id})
 
+    def search(self, embedding: list[float], limit: int) -> list[RetrievedChunk]:
+        """Recupera os trechos mais próximos e normaliza a distância L2."""
+        count = self.collection.count()
+        if count == 0:
+            return []
+
+        result = self.collection.query(
+            query_embeddings=[embedding],
+            n_results=min(limit, count),
+            include=["documents", "metadatas", "distances"],
+        )
+        documents = (result.get("documents") or [[]])[0]
+        metadatas = (result.get("metadatas") or [[]])[0]
+        distances = (result.get("distances") or [[]])[0]
+
+        chunks: list[RetrievedChunk] = []
+        for content, metadata, distance in zip(documents, metadatas, distances, strict=True):
+            if content is None or metadata is None:
+                continue
+            # Os embeddings são normalizados; para distância L2 ao quadrado,
+            # cosine_similarity = 1 - distance / 2.
+            relevance = max(0.0, min(1.0, 1.0 - float(distance) / 2.0))
+            chunks.append(
+                RetrievedChunk(
+                    document_id=str(metadata["document_id"]),
+                    document_name=str(metadata["document_name"]),
+                    content=content,
+                    chunk_index=int(metadata["chunk_index"]),
+                    page=int(metadata["page"]) if "page" in metadata else None,
+                    relevance=relevance,
+                )
+            )
+        return chunks

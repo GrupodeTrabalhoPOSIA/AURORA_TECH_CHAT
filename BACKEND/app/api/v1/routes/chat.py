@@ -1,12 +1,16 @@
-"""Contrato inicial do endpoint de chat."""
+"""Endpoint do chat fundamentado pela base de conhecimento."""
 
-from fastapi import APIRouter, status
+from typing import Annotated
 
-from app.core.errors import AppError
+from fastapi import APIRouter, Depends
+
+from app.api.dependencies import get_chat_service
 from app.models.chat import ChatRequest, ChatResponse
 from app.models.errors import ErrorResponse
+from app.services.rag import ChatService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
+ChatServiceDependency = Annotated[ChatService, Depends(get_chat_service)]
 
 
 @router.post(
@@ -14,15 +18,15 @@ router = APIRouter(prefix="/chat", tags=["chat"])
     response_model=ChatResponse,
     responses={
         422: {"model": ErrorResponse, "description": "Dados de entrada inválidos."},
-        501: {"model": ErrorResponse, "description": "RAG ainda não implementado."},
+        502: {"model": ErrorResponse, "description": "Falha no provedor do modelo."},
+        503: {"model": ErrorResponse, "description": "Modelo não configurado."},
+        504: {"model": ErrorResponse, "description": "Tempo de resposta excedido."},
     },
     summary="Enviar uma pergunta ao assistente",
 )
-async def send_message(_: ChatRequest) -> ChatResponse:
-    """Publica o contrato; o comportamento RAG será entregue no Ciclo 09."""
-    raise AppError(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        code="CHAT_NOT_IMPLEMENTED",
-        message="O chat será habilitado no Ciclo 09.",
-    )
-
+async def send_message(
+    request: ChatRequest,
+    service: ChatServiceDependency,
+) -> ChatResponse:
+    """Responde apenas quando houver contexto relevante na coleção."""
+    return await service.answer(request)

@@ -1,7 +1,7 @@
 # Plano de Implementação — Aurora Tech Chatbot
 
 **Base:** [ESPECIFICACAO.md](./ESPECIFICACAO.md)  
-**Status geral:** Em andamento — ciclos 01 e 02 concluídos  
+**Status geral:** Em andamento — ciclos 01 a 08 concluídos; Ciclo 09 implementado
 **Estratégia:** ciclos curtos alternando entre backend e frontend
 
 ## 1. Objetivo do plano
@@ -287,26 +287,26 @@ O ciclo estará concluído quando a base vetorial puder ser gerenciada integralm
 
 ### Implementação
 
-- [ ] Gerar o embedding da pergunta com o mesmo modelo usado na indexação.
-- [ ] Consultar no ChromaDB a quantidade configurada de trechos.
-- [ ] Aplicar limiar de relevância e limitar o contexto.
-- [ ] Criar o prompt de sistema da Aurora Tech.
-- [ ] Incluir contexto, pergunta e histórico curto no prompt.
-- [ ] Criar um cliente isolado para a OpenRouter usando `httpx`.
-- [ ] Configurar modelo, chave, timeout e cabeçalhos necessários.
-- [ ] Implementar `POST /api/v1/chat`.
-- [ ] Retornar resposta, fontes e `has_context`.
-- [ ] Responder sem chamar o modelo quando não houver contexto suficiente, se essa for a estratégia escolhida.
-- [ ] Tratar chave inválida, timeout, limite e modelo indisponível.
+- [x] Gerar o embedding da pergunta com o mesmo modelo usado na indexação.
+- [x] Consultar no ChromaDB a quantidade configurada de trechos.
+- [x] Aplicar limiar de relevância e limitar o contexto.
+- [x] Criar o prompt de sistema da Aurora Tech.
+- [x] Incluir contexto, pergunta e histórico curto no prompt.
+- [x] Criar um cliente isolado para a OpenRouter usando `httpx`.
+- [x] Configurar modelo, chave, timeout e cabeçalhos necessários.
+- [x] Implementar `POST /api/v1/chat`.
+- [x] Retornar resposta, fontes e `has_context`.
+- [x] Responder sem chamar o modelo quando não houver contexto suficiente, se essa for a estratégia escolhida.
+- [x] Tratar chave inválida, timeout, limite e modelo indisponível.
 
 ### Validação
 
-- [ ] Testar a recuperação de um trecho conhecido.
-- [ ] Testar a montagem do prompt sem expor instruções ou segredos.
-- [ ] Testar o endpoint com cliente OpenRouter simulado.
+- [x] Testar a recuperação de um trecho conhecido.
+- [x] Testar a montagem do prompt sem expor instruções ou segredos.
+- [x] Testar o endpoint com cliente OpenRouter simulado.
 - [ ] Executar ao menos uma consulta real com uma chave fornecida pelo ambiente.
-- [ ] Testar pergunta sem contexto e fontes vazias.
-- [ ] Registrar os comandos executados no diário sem registrar a chave.
+- [x] Testar pergunta sem contexto e fontes vazias.
+- [x] Registrar os comandos executados no diário sem registrar a chave.
 
 ### Critério de conclusão
 
@@ -528,3 +528,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm test` — 4 testes aprovados; `npm run typecheck` e `npm run build` aprovados; API real na porta 8001 — upload HTTP 201, listagem com 1 documento, delete HTTP 204 e lista final vazia.
 - Pendências: nenhuma no Ciclo 08.
 - Próximo ciclo: Ciclo 09 — Backend: recuperação RAG e OpenRouter
+
+### 2026-08-27 — Ciclo 09
+
+- Status: parcial — implementação concluída; validação externa condicionada à credencial.
+- Implementado: busca vetorial com relevância e limite de contexto, prompt fundamentado com histórico curto, política de recusa sem contexto, endpoint real de chat e cliente OpenRouter assíncrono com tratamento seguro de erros.
+- Arquivos principais: `BACKEND/app/services/rag/`, `BACKEND/app/services/llm/`, `BACKEND/app/services/vector_store/chroma_store.py`, `BACKEND/app/api/v1/routes/chat.py`, `BACKEND/tests/test_rag_service.py`, `BACKEND/tests/test_openrouter_client.py`.
+- Validações: `python -m pytest -q` — 34 testes aprovados; recuperação conhecida, limite de contexto, prompt, recusa, endpoint com provedor simulado, autenticação, limite e indisponibilidade cobertos.
+- Pendências: consulta externa real não executada porque `OPENROUTER_API_KEY` não está presente no ambiente nem em `BACKEND/.env`; nenhum segredo foi exibido ou registrado.
+- Próximo ciclo: Ciclo 10 — Frontend: chat integrado

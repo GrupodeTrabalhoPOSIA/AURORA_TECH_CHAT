@@ -2,6 +2,8 @@
 
 import math
 
+from app.models.rag import LLMMessage
+
 
 class FakeEmbeddingService:
     """Gera vetores pequenos e determinísticos sem baixar modelos."""
@@ -22,3 +24,14 @@ class FakeEmbeddingService:
     def embed_query(self, text: str) -> list[float]:
         return self._embed(text)
 
+
+class FakeLLMClient:
+    """Registra o prompt e devolve uma resposta fixa."""
+
+    def __init__(self, answer: str = "Resposta fundamentada da Aurora Tech.") -> None:
+        self.answer = answer
+        self.calls: list[list[LLMMessage]] = []
+
+    async def complete(self, messages: list[LLMMessage]) -> str:
+        self.calls.append(messages)
+        return self.answer

@@ -25,11 +25,16 @@ class Settings(BaseSettings):
     openrouter_api_key: SecretStr | None = None
     openrouter_model: str = "openai/gpt-4o-mini"
     openrouter_timeout_seconds: float = Field(default=30.0, gt=0, le=120)
+    openrouter_max_tokens: int = Field(default=500, ge=50, le=4000)
+    openrouter_temperature: float = Field(default=0.1, ge=0, le=2)
+    openrouter_referer: str = "http://localhost:5173"
+    openrouter_app_title: str = "Aurora Tech Chatbot"
 
     chroma_persist_directory: Path = Path("data/chroma")
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     retrieval_top_k: int = Field(default=5, ge=1, le=20)
     retrieval_min_relevance: float = Field(default=0.35, ge=0, le=1)
+    max_context_characters: int = Field(default=6000, ge=500, le=30000)
     chunk_size: int = Field(default=700, ge=100, le=4000)
     chunk_overlap: int = Field(default=100, ge=0, le=1000)
 
@@ -63,4 +68,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Retorna uma instância compartilhada e imutável durante a execução."""
     return Settings()
-
