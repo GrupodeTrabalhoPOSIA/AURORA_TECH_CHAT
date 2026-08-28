@@ -15,6 +15,9 @@ function ChatMessage({ message }: ChatMessageProps) {
       <div className="chat-message__body">
         <strong>{isAssistant ? 'Aurora' : 'Você'}</strong>
         <p>{message.content}</p>
+        {isAssistant && message.hasContext === false ? (
+          <span className="no-context-label">Sem contexto suficiente</span>
+        ) : null}
         {message.sources && message.sources.length > 0 ? (
           <div className="source-list" aria-label="Fontes da resposta">
             {message.sources.map((source) => (
@@ -31,4 +34,3 @@ function ChatMessage({ message }: ChatMessageProps) {
 }
 
 export default ChatMessage;
-

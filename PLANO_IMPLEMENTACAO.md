@@ -47,7 +47,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
 - [x] Ciclo 08 — Frontend: integração da base de conhecimento
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
-- [ ] Ciclo 10 — Frontend: chat integrado
+- [x] Ciclo 10 — Frontend: chat integrado
 - [ ] Ciclo 11 — Backend: robustez, testes e avaliação RAG
 - [ ] Ciclo 12 — Frontend: testes, responsividade e acabamento
 - [ ] Validação final do MVP
@@ -320,25 +320,25 @@ O ciclo estará concluído quando o endpoint responder uma pergunta fundamentada
 
 ### Implementação
 
-- [ ] Criar a função do cliente para `POST /api/v1/chat`.
-- [ ] Enviar mensagem e histórico curto ao backend.
-- [ ] Adicionar imediatamente a mensagem do usuário à conversa.
-- [ ] Exibir carregamento enquanto aguarda a resposta.
-- [ ] Exibir a resposta do assistente.
-- [ ] Exibir as fontes associadas à resposta.
-- [ ] Exibir o estado de ausência de contexto.
-- [ ] Implementar ação para limpar a conversa.
-- [ ] Limitar o histórico enviado conforme a especificação.
-- [ ] Remover os dados simulados do chat.
+- [x] Criar a função do cliente para `POST /api/v1/chat`.
+- [x] Enviar mensagem e histórico curto ao backend.
+- [x] Adicionar imediatamente a mensagem do usuário à conversa.
+- [x] Exibir carregamento enquanto aguarda a resposta.
+- [x] Exibir a resposta do assistente.
+- [x] Exibir as fontes associadas à resposta.
+- [x] Exibir o estado de ausência de contexto.
+- [x] Implementar ação para limpar a conversa.
+- [x] Limitar o histórico enviado conforme a especificação.
+- [x] Remover os dados simulados do chat.
 
 ### Validação
 
-- [ ] Testar uma pergunta com resposta presente na base.
-- [ ] Testar uma pergunta sem resposta na base.
-- [ ] Testar erro e timeout do backend.
-- [ ] Confirmar que o histórico permanece apenas no frontend.
-- [ ] Confirmar que limpar a conversa remove o histórico visível.
-- [ ] Registrar os comandos executados no diário.
+- [x] Testar uma pergunta com resposta presente na base.
+- [x] Testar uma pergunta sem resposta na base.
+- [x] Testar erro e timeout do backend.
+- [x] Confirmar que o histórico permanece apenas no frontend.
+- [x] Confirmar que limpar a conversa remove o histórico visível.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -537,3 +537,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `python -m pytest -q` — 34 testes aprovados; recuperação conhecida, limite de contexto, prompt, recusa, endpoint com provedor simulado, autenticação, limite e indisponibilidade cobertos.
 - Pendências: consulta externa real não executada porque `OPENROUTER_API_KEY` não está presente no ambiente nem em `BACKEND/.env`; nenhum segredo foi exibido ou registrado.
 - Próximo ciclo: Ciclo 10 — Frontend: chat integrado
+
+### 2026-08-27 — Ciclo 10
+
+- Status: concluído.
+- Implementado: cliente HTTP do chat, histórico temporário limitado a 10 mensagens, envio otimista, carregamento, resposta com fontes, indicação de ausência de contexto, erro com nova tentativa, timeout local e limpeza da conversa; dados simulados removidos.
+- Arquivos principais: `FRONTEND/src/features/chat/api/chatApi.ts`, `FRONTEND/src/features/chat/hooks/useChat.ts`, `FRONTEND/src/features/chat/components/ChatComposer.tsx`, `FRONTEND/src/features/chat/components/ChatMessage.tsx`, `FRONTEND/src/pages/ChatPage.tsx`, `FRONTEND/src/pages/ChatPage.test.tsx`.
+- Validações: `npm test` — 9 testes aprovados; `npm run typecheck` — aprovado; `npm run build` — aprovado com 54 módulos transformados.
+- Pendências: nenhuma no Ciclo 10.
+- Próximo ciclo: Ciclo 11 — Backend: robustez, testes e avaliação RAG

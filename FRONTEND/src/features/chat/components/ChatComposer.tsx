@@ -1,10 +1,25 @@
+import { useState } from 'react';
+
 interface ChatComposerProps {
   disabled?: boolean;
+  isSending?: boolean;
+  onSubmit: (message: string) => void;
 }
 
-function ChatComposer({ disabled = false }: ChatComposerProps) {
+function ChatComposer({ disabled = false, isSending = false, onSubmit }: ChatComposerProps) {
+  const [message, setMessage] = useState('');
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!message.trim() || disabled || isSending) {
+      return;
+    }
+    onSubmit(message);
+    setMessage('');
+  }
+
   return (
-    <form className="composer" aria-label="Enviar uma pergunta">
+    <form className="composer" aria-label="Enviar uma pergunta" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="chat-message">
         Sua pergunta
       </label>
@@ -13,14 +28,16 @@ function ChatComposer({ disabled = false }: ChatComposerProps) {
         name="message"
         rows={1}
         placeholder="Digite sua pergunta sobre a Aurora Tech…"
-        disabled={disabled}
+        disabled={disabled || isSending}
+        maxLength={2000}
+        value={message}
+        onChange={(event) => setMessage(event.target.value)}
       />
-      <button type="submit" disabled={disabled}>
-        Enviar
+      <button type="submit" disabled={disabled || isSending || !message.trim()}>
+        {isSending ? 'Enviando…' : 'Enviar'}
       </button>
     </form>
   );
 }
 
 export default ChatComposer;
-

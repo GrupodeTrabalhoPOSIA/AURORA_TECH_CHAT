@@ -1,28 +1,8 @@
-import { ChatComposer, ChatLoading, ChatMessage } from '@/features/chat';
-import type { ChatMessageView } from '@/features/chat';
-
-const mockMessages: ChatMessageView[] = [
-  {
-    id: 'mock-user',
-    role: 'user',
-    content: 'Quais serviços a Aurora Tech oferece?',
-  },
-  {
-    id: 'mock-assistant',
-    role: 'assistant',
-    content:
-      'Quando a base estiver conectada, apresentarei aqui uma resposta fundamentada nos documentos da empresa.',
-    sources: [
-      {
-        document_id: 'mock-source',
-        document_name: 'apresentacao-aurora.pdf',
-        page: 3,
-      },
-    ],
-  },
-];
+import { ChatComposer, ChatError, ChatLoading, ChatMessage, useChat } from '@/features/chat';
 
 function ChatPage() {
+  const { messages, isSending, error, submit, retry, clear } = useChat();
+
   return (
     <section className="chat-page" aria-labelledby="chat-title">
       <div className="chat-welcome chat-welcome--compact">
@@ -35,18 +15,29 @@ function ChatPage() {
 
       </div>
 
-      <div className="chat-thread" aria-label="Prévia da conversa">
-        {mockMessages.map((message) => (
-          <ChatMessage message={message} key={message.id} />
-        ))}
-        <ChatLoading />
+      <div className="chat-toolbar">
+        <span>{messages.length === 0 ? 'Nova conversa' : `${messages.length} mensagens`}</span>
+        {messages.length > 0 ? (
+          <button type="button" onClick={clear} disabled={isSending}>
+            Limpar conversa
+          </button>
+        ) : null}
       </div>
 
-      <ChatComposer disabled />
+      <div className="chat-thread" aria-label="Conversa" aria-live="polite">
+        {messages.length === 0 ? (
+          <div className="chat-empty">
+            Pergunte sobre serviços, atendimento ou qualquer informação cadastrada.
+          </div>
+        ) : null}
+        {messages.map((message) => (
+          <ChatMessage message={message} key={message.id} />
+        ))}
+        {isSending ? <ChatLoading /> : null}
+        {error ? <ChatError message={error} onRetry={retry} /> : null}
+      </div>
 
-      <p className="development-note">
-        A interação do chat será habilitada nos próximos ciclos.
-      </p>
+      <ChatComposer isSending={isSending} onSubmit={(message) => void submit(message)} />
     </section>
   );
 }

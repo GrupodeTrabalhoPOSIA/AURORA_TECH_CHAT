@@ -6,5 +6,5 @@ export interface ChatMessageView {
   role: 'user' | 'assistant';
   content: string;
   sources?: ChatSource[];
+  hasContext?: boolean;
 }
-

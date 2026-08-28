@@ -295,6 +295,34 @@ h1 {
   gap: 16px;
 }
 
+.chat-toolbar {
+  display: flex;
+  width: min(100%, 800px);
+  margin-top: 8px;
+  align-items: center;
+  justify-content: space-between;
+  color: #75878b;
+  font-size: 0.78rem;
+}
+
+.chat-toolbar button {
+  padding: 7px 10px;
+  color: #667b7f;
+  font-size: 0.78rem;
+  border: 1px solid rgba(24, 83, 90, 0.12);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.chat-empty {
+  padding: 28px;
+  color: #71868a;
+  text-align: center;
+  border: 1px dashed rgba(24, 117, 111, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 .chat-message {
   display: flex;
   gap: 12px;
@@ -353,6 +381,17 @@ h1 {
   margin-top: 12px;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.no-context-label {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 5px 8px;
+  color: #87682d;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 8px;
+  background: #fff6df;
 }
 
 .source-chip {
