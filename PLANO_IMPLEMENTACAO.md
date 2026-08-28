@@ -43,7 +43,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 03 — Backend: contratos e configurações
 - [x] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
 - [x] Ciclo 05 — Backend: leitura e divisão de documentos
-- [ ] Ciclo 06 — Frontend: tela da base de conhecimento
+- [x] Ciclo 06 — Frontend: tela da base de conhecimento
 - [ ] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
 - [ ] Ciclo 08 — Frontend: integração da base de conhecimento
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
@@ -200,20 +200,20 @@ O ciclo estará concluído quando todos os formatos suportados forem convertidos
 
 ### Implementação
 
-- [ ] Criar o seletor de arquivos com formatos aceitos visíveis.
-- [ ] Criar o botão de envio e seu estado de carregamento.
-- [ ] Criar a lista visual de documentos.
-- [ ] Exibir nome, tipo e quantidade de trechos.
-- [ ] Criar a ação de remoção com confirmação.
-- [ ] Criar estados de lista vazia, sucesso e erro.
-- [ ] Usar respostas simuladas compatíveis com o contrato enquanto os endpoints ainda não estiverem disponíveis.
+- [x] Criar o seletor de arquivos com formatos aceitos visíveis.
+- [x] Criar o botão de envio e seu estado de carregamento.
+- [x] Criar a lista visual de documentos.
+- [x] Exibir nome, tipo e quantidade de trechos.
+- [x] Criar a ação de remoção com confirmação.
+- [x] Criar estados de lista vazia, sucesso e erro.
+- [x] Usar respostas simuladas compatíveis com o contrato enquanto os endpoints ainda não estiverem disponíveis.
 
 ### Validação
 
-- [ ] Testar seleção de formato aceito e rejeitado.
-- [ ] Testar estados de carregamento, lista vazia e erro.
-- [ ] Testar visualmente em largura de celular e desktop.
-- [ ] Registrar os comandos executados no diário.
+- [x] Testar seleção de formato aceito e rejeitado.
+- [x] Testar estados de carregamento, lista vazia e erro.
+- [x] Testar visualmente em largura de celular e desktop.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -501,3 +501,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `python -m pytest -q` — 21 testes aprovados; 11 testes específicos de documentos cobrindo formatos, página, chunking, normalização, MIME, vazio e duplicidade.
 - Pendências: nenhuma no Ciclo 05.
 - Próximo ciclo: Ciclo 06 — Frontend: tela da base de conhecimento
+
+### 2026-08-27 — Ciclo 06
+
+- Status: concluído
+- Implementado: tela simulada de documentos com seletor validado, upload com carregamento, listagem, contagem de chunks, tamanho, remoção confirmada e estados vazio/sucesso/erro responsivos.
+- Arquivos principais: `FRONTEND/src/features/documents/`, `FRONTEND/src/pages/KnowledgeBasePage.tsx`, `FRONTEND/src/pages/KnowledgeBasePage.test.tsx`, `FRONTEND/src/styles/global.css`, `FRONTEND/vite.config.ts`.
+- Validações: `npm test` — 3 testes aprovados; `npm run typecheck` — aprovado; `npm run build` — aprovado com 50 módulos; revisão dos breakpoints de celular e desktop no CSS.
+- Pendências: os dados permanecem simulados até a integração do Ciclo 08.
+- Próximo ciclo: Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
