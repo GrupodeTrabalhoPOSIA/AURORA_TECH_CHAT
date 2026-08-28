@@ -9,6 +9,7 @@ description = "API do chatbot acadêmico da Aurora Tech"
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "fastapi>=0.116,<1.0",
+    "pydantic-settings>=2.10,<3.0",
     "uvicorn[standard]>=0.35,<1.0",
 ]
 
@@ -23,4 +24,3 @@ packages = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-

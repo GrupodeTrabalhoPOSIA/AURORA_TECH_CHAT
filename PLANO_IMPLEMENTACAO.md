@@ -40,7 +40,7 @@ Ao executar este plano, o agente deverá:
 
 - [x] Ciclo 01 — Backend: fundação da API
 - [x] Ciclo 02 — Frontend: fundação da interface
-- [ ] Ciclo 03 — Backend: contratos e configurações
+- [x] Ciclo 03 — Backend: contratos e configurações
 - [ ] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
 - [ ] Ciclo 05 — Backend: leitura e divisão de documentos
 - [ ] Ciclo 06 — Frontend: tela da base de conhecimento
@@ -114,21 +114,21 @@ O ciclo estará concluído quando a aplicação React abrir no navegador, navega
 
 ### Implementação
 
-- [ ] Criar o módulo central de configurações do backend.
-- [ ] Ler configurações por variáveis de ambiente.
-- [ ] Validar a presença das configurações obrigatórias no momento apropriado.
-- [ ] Criar os modelos de requisição do chat: mensagem e histórico.
-- [ ] Criar os modelos de resposta: resposta, fonte e indicação de contexto.
-- [ ] Criar o formato padronizado de erro da API.
-- [ ] Definir limites de tamanho para mensagem, histórico e upload.
-- [ ] Documentar os contratos no Swagger com exemplos.
+- [x] Criar o módulo central de configurações do backend.
+- [x] Ler configurações por variáveis de ambiente.
+- [x] Validar a presença das configurações obrigatórias no momento apropriado.
+- [x] Criar os modelos de requisição do chat: mensagem e histórico.
+- [x] Criar os modelos de resposta: resposta, fonte e indicação de contexto.
+- [x] Criar o formato padronizado de erro da API.
+- [x] Definir limites de tamanho para mensagem, histórico e upload.
+- [x] Documentar os contratos no Swagger com exemplos.
 
 ### Validação
 
-- [ ] Criar testes para validação dos modelos.
-- [ ] Confirmar rejeição de mensagem vazia e entrada acima do limite.
-- [ ] Confirmar que segredos não aparecem nos logs ou no Swagger.
-- [ ] Registrar os comandos executados no diário.
+- [x] Criar testes para validação dos modelos.
+- [x] Confirmar rejeição de mensagem vazia e entrada acima do limite.
+- [x] Confirmar que segredos não aparecem nos logs ou no Swagger.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -474,3 +474,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm run typecheck` — aprovado; `npm run build` — aprovado, 34 módulos transformados; Vite iniciado em `127.0.0.1:5173`; página inicial — HTTP 200 e título correto; navegação de Chat e Base de conhecimento confirmada na composição da aplicação.
 - Pendências: nenhuma no Ciclo 02. A interação dos controles permanece desabilitada intencionalmente até os ciclos de integração correspondentes.
 - Próximo ciclo: Ciclo 03 — Backend: contratos e configurações
+
+### 2026-08-27 — Ciclo 03
+
+- Status: concluído
+- Implementado: configurações tipadas com Pydantic Settings, chave OpenRouter protegida e validada sob demanda, limites do MVP, contratos do chat, erros padronizados e endpoint provisório documentado no OpenAPI.
+- Arquivos principais: `BACKEND/app/core/config.py`, `BACKEND/app/core/errors.py`, `BACKEND/app/models/chat.py`, `BACKEND/app/models/errors.py`, `BACKEND/app/api/v1/routes/chat.py`, `BACKEND/tests/test_chat_contract.py`, `BACKEND/tests/test_config.py`.
+- Validações: `python -m pytest -q` — 10 testes aprovados; validação de mensagem vazia, mensagem longa, histórico longo, proteção do segredo e schemas do chat no OpenAPI.
+- Pendências: o endpoint `/chat` retorna `CHAT_NOT_IMPLEMENTED` intencionalmente até o Ciclo 09.
+- Próximo ciclo: Ciclo 04 — Frontend: estrutura visual e comunicação com a API
