@@ -48,7 +48,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 08 — Frontend: integração da base de conhecimento
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
 - [x] Ciclo 10 — Frontend: chat integrado
-- [ ] Ciclo 11 — Backend: robustez, testes e avaliação RAG
+- [x] Ciclo 11 — Backend: robustez, testes e avaliação RAG
 - [ ] Ciclo 12 — Frontend: testes, responsividade e acabamento
 - [ ] Validação final do MVP
 
@@ -352,24 +352,24 @@ O ciclo estará concluído quando o usuário puder conversar com o chatbot real,
 
 ### Implementação
 
-- [ ] Revisar validação de todas as entradas.
-- [ ] Garantir que a chave da OpenRouter nunca seja registrada.
-- [ ] Padronizar os erros retornados pela API.
-- [ ] Adicionar logs essenciais sem conteúdo sensível.
-- [ ] Completar os testes unitários dos serviços.
-- [ ] Completar os testes dos endpoints.
-- [ ] Criar uma pequena base de perguntas esperadas.
-- [ ] Avaliar recuperação de fontes e recusa sem contexto.
-- [ ] Ajustar tamanho dos trechos, sobreposição, `top_k` e limiar com base nos resultados.
-- [ ] Documentar os valores finais escolhidos.
+- [x] Revisar validação de todas as entradas.
+- [x] Garantir que a chave da OpenRouter nunca seja registrada.
+- [x] Padronizar os erros retornados pela API.
+- [x] Adicionar logs essenciais sem conteúdo sensível.
+- [x] Completar os testes unitários dos serviços.
+- [x] Completar os testes dos endpoints.
+- [x] Criar uma pequena base de perguntas esperadas.
+- [x] Avaliar recuperação de fontes e recusa sem contexto.
+- [x] Ajustar tamanho dos trechos, sobreposição, `top_k` e limiar com base nos resultados.
+- [x] Documentar os valores finais escolhidos.
 
 ### Validação
 
-- [ ] Executar toda a suíte do backend sem falhas.
-- [ ] Executar a avaliação RAG e registrar os resultados.
-- [ ] Confirmar que nenhum segredo está versionado.
-- [ ] Confirmar inicialização com base vetorial vazia.
-- [ ] Registrar os comandos executados no diário.
+- [x] Executar toda a suíte do backend sem falhas.
+- [x] Executar a avaliação RAG e registrar os resultados.
+- [x] Confirmar que nenhum segredo está versionado.
+- [x] Confirmar inicialização com base vetorial vazia.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -546,3 +546,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm test` — 9 testes aprovados; `npm run typecheck` — aprovado; `npm run build` — aprovado com 54 módulos transformados.
 - Pendências: nenhuma no Ciclo 10.
 - Próximo ciclo: Ciclo 11 — Backend: robustez, testes e avaliação RAG
+
+### 2026-08-27 — Ciclo 11
+
+- Status: concluído.
+- Implementado: logs de requisição sem corpo/cabeçalhos, erros inesperados padronizados sem mensagem interna, validação adicional de nome de arquivo, encerramento explícito do Chroma, testes de timeout/resposta inválida e avaliação RAG reproduzível.
+- Arquivos principais: `BACKEND/app/core/logging.py`, `BACKEND/app/core/errors.py`, `BACKEND/evaluation/rag_cases.json`, `BACKEND/evaluation/evaluate_rag.py`, `BACKEND/evaluation/README.md`, `BACKEND/tests/test_error_handling.py`.
+- Validações: `python -m pytest -q` — 38 testes aprovados; `python -m compileall -q app evaluation` — aprovado; `python evaluation/evaluate_rag.py` com embeddings reais — 4/4 casos aprovados; varredura por padrão de chave OpenRouter — nenhuma ocorrência; arquivos `.env` confirmados no `.gitignore`.
+- Pendências: nenhuma no Ciclo 11.
+- Próximo ciclo: Ciclo 12 — Frontend: testes, responsividade e acabamento

@@ -100,6 +100,12 @@ class DocumentProcessor:
         content: bytes,
         content_type: str | None,
     ) -> None:
+        if len(filename) > 255 or "\x00" in filename:
+            raise AppError(
+                status_code=422,
+                code="INVALID_FILE_NAME",
+                message="O nome do arquivo é inválido.",
+            )
         if not filename.strip() or extension not in EXTRACTORS:
             raise AppError(
                 status_code=415,

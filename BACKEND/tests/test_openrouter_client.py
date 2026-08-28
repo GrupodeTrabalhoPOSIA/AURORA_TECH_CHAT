@@ -77,3 +77,41 @@ def test_missing_key_returns_safe_configuration_error() -> None:
 
     assert captured.value.status_code == 503
     assert captured.value.code == "MODEL_NOT_CONFIGURED"
+
+
+def test_timeout_is_mapped_to_gateway_timeout() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("tempo excedido com dado privado", request=request)
+
+    settings = Settings(
+        _env_file=None,
+        openrouter_api_key=SecretStr("segredo-de-teste"),
+    )
+
+    with pytest.raises(AppError) as captured:
+        asyncio.run(
+            OpenRouterClient(settings, transport=httpx.MockTransport(handler)).complete(
+                [{"role": "user", "content": "Olá"}]
+            )
+        )
+
+    assert captured.value.status_code == 504
+    assert captured.value.code == "MODEL_TIMEOUT"
+    assert "privado" not in captured.value.message
+
+
+def test_malformed_success_response_is_rejected() -> None:
+    transport = httpx.MockTransport(lambda _: httpx.Response(200, json={"choices": []}))
+    settings = Settings(
+        _env_file=None,
+        openrouter_api_key=SecretStr("segredo-de-teste"),
+    )
+
+    with pytest.raises(AppError) as captured:
+        asyncio.run(
+            OpenRouterClient(settings, transport=transport).complete(
+                [{"role": "user", "content": "Olá"}]
+            )
+        )
+
+    assert captured.value.code == "MODEL_INVALID_RESPONSE"

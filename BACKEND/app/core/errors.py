@@ -1,5 +1,6 @@
 """Erros de aplicação e handlers HTTP padronizados."""
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -7,6 +8,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.models.errors import ErrorDetail, ErrorResponse
+
+logger = logging.getLogger("aurora.errors")
 
 
 class AppError(Exception):
@@ -31,7 +34,13 @@ def register_exception_handlers(application: FastAPI) -> None:
     """Registra respostas consistentes para erros conhecidos e de validação."""
 
     @application.exception_handler(AppError)
-    async def handle_app_error(_: Request, exception: AppError) -> JSONResponse:
+    async def handle_app_error(request: Request, exception: AppError) -> JSONResponse:
+        logger.warning(
+            "application_error path=%s status=%s code=%s",
+            request.url.path,
+            exception.status_code,
+            exception.code,
+        )
         response = ErrorResponse(
             detail=ErrorDetail(
                 code=exception.code,
@@ -46,9 +55,14 @@ def register_exception_handlers(application: FastAPI) -> None:
 
     @application.exception_handler(RequestValidationError)
     async def handle_validation_error(
-        _: Request,
+        request: Request,
         exception: RequestValidationError,
     ) -> JSONResponse:
+        logger.warning(
+            "validation_error path=%s count=%s",
+            request.url.path,
+            len(exception.errors()),
+        )
         safe_errors = [
             {
                 "type": error["type"],
@@ -65,3 +79,19 @@ def register_exception_handlers(application: FastAPI) -> None:
             )
         )
         return JSONResponse(status_code=422, content=response.model_dump(exclude_none=True))
+
+    @application.exception_handler(Exception)
+    async def handle_unexpected_error(request: Request, exception: Exception) -> JSONResponse:
+        # O tipo ajuda no diagnóstico; a mensagem pode conter dados do usuário ou segredos.
+        logger.error(
+            "unexpected_error path=%s type=%s",
+            request.url.path,
+            type(exception).__name__,
+        )
+        response = ErrorResponse(
+            detail=ErrorDetail(
+                code="INTERNAL_ERROR",
+                message="Ocorreu um erro interno inesperado.",
+            )
+        )
+        return JSONResponse(status_code=500, content=response.model_dump(exclude_none=True))

@@ -136,3 +136,14 @@ def test_duplicate_hash_is_rejected(processor: DocumentProcessor) -> None:
         )
 
     assert error.value.code == "DUPLICATE_DOCUMENT"
+
+
+def test_unsafe_file_name_is_rejected(processor: DocumentProcessor) -> None:
+    with pytest.raises(AppError) as error:
+        processor.process(
+            filename=f"{'a' * 252}.txt",
+            content=b"conteudo",
+            content_type="text/plain",
+        )
+
+    assert error.value.code == "INVALID_FILE_NAME"

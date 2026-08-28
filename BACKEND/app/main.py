@@ -6,11 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
+from app.core.logging import configure_logging, register_request_logging
 
 
 def create_app() -> FastAPI:
     """Cria e configura a aplicação FastAPI."""
     settings = get_settings()
+    configure_logging(settings.log_level)
     application = FastAPI(
         title=settings.app_name,
         description="API acadêmica para o chatbot RAG da Aurora Tech.",
@@ -28,6 +30,7 @@ def create_app() -> FastAPI:
     )
 
     register_exception_handlers(application)
+    register_request_logging(application)
     application.include_router(api_router, prefix="/api/v1")
     return application
 

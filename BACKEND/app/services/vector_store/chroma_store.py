@@ -21,6 +21,10 @@ class ChromaVectorStore:
         self.client = chromadb.PersistentClient(path=str(persist_directory))
         self.collection = self.client.get_or_create_collection(name=COLLECTION_NAME)
 
+    def close(self) -> None:
+        """Libera índices e conexões, especialmente importante no Windows."""
+        self.client.close()
+
     def add_document(
         self,
         document: ProcessedDocument,
