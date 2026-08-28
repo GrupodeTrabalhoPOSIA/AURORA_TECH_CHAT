@@ -41,9 +41,15 @@ function DocumentUpload({
         className="sr-only"
         type="file"
         accept={acceptedFormats}
+        aria-label="Selecionar documento para a base de conhecimento"
         onChange={handleInputChange}
       />
-      <button className="document-picker" type="button" onClick={handleOpenPicker}>
+      <button
+        className="document-picker"
+        type="button"
+        aria-label={selectedFile ? `Trocar o arquivo ${selectedFile.name}` : 'Selecionar documento'}
+        onClick={handleOpenPicker}
+      >
         <span className="document-picker__icon" aria-hidden="true">
           ↑
         </span>

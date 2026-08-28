@@ -27,7 +27,7 @@ function ChatComposer({ disabled = false, isSending = false, onSubmit }: ChatCom
         id="chat-message"
         name="message"
         rows={1}
-        placeholder="Digite sua pergunta sobre a Aurora Tech…"
+        placeholder="Digite sua pergunta…"
         disabled={disabled || isSending}
         maxLength={2000}
         value={message}

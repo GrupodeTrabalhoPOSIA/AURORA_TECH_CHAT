@@ -39,12 +39,7 @@ export function useDocuments(): UseDocumentsResult {
   const [feedback, setFeedback] = useState<DocumentFeedback | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
-  const reload = useCallback((): void => {
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    setIsLoading(true);
-
+  const loadDocuments = useCallback((controller: AbortController): void => {
     void listDocuments(controller.signal)
       .then((items) => {
         setDocuments(items);
@@ -63,10 +58,20 @@ export function useDocuments(): UseDocumentsResult {
       });
   }, []);
 
+  const reload = useCallback((): void => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setIsLoading(true);
+    loadDocuments(controller);
+  }, [loadDocuments]);
+
   useEffect(() => {
-    reload();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    loadDocuments(controller);
     return () => controllerRef.current?.abort();
-  }, [reload]);
+  }, [loadDocuments]);
 
   const upload = useCallback(async (file: File): Promise<boolean> => {
     setIsUploading(true);
@@ -112,4 +117,3 @@ export function useDocuments(): UseDocumentsResult {
     dismissFeedback,
   };
 }
-

@@ -13,12 +13,7 @@ export function useApiHealth(): UseApiHealthResult {
   const [status, setStatus] = useState<ApiAvailability>('checking');
   const controllerRef = useRef<AbortController | null>(null);
 
-  const checkAgain = useCallback((): void => {
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    setStatus('checking');
-
+  const checkHealth = useCallback((controller: AbortController): void => {
     void getHealth(controller.signal)
       .then(() => setStatus('online'))
       .catch((error: unknown) => {
@@ -29,11 +24,20 @@ export function useApiHealth(): UseApiHealthResult {
       });
   }, []);
 
+  const checkAgain = useCallback((): void => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setStatus('checking');
+    checkHealth(controller);
+  }, [checkHealth]);
+
   useEffect(() => {
-    checkAgain();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    checkHealth(controller);
     return () => controllerRef.current?.abort();
-  }, [checkAgain]);
+  }, [checkHealth]);
 
   return { status, checkAgain };
 }
-

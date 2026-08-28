@@ -68,7 +68,7 @@ function KnowledgeBasePage() {
       return;
     }
     void remove(document);
-  }, [documents, remove]);
+  }, [remove]);
 
   return (
     <section className="knowledge-page" aria-labelledby="knowledge-title">
@@ -101,7 +101,9 @@ function KnowledgeBasePage() {
             <span className="eyebrow">Arquivos preparados</span>
             <h2>Documentos</h2>
           </div>
-          <span className="document-count">{documents.length}</span>
+          <span className="document-count" aria-label={`${documents.length} documentos`}>
+            {documents.length}
+          </span>
         </div>
         {isLoading ? (
           <div className="documents-loading" role="status">

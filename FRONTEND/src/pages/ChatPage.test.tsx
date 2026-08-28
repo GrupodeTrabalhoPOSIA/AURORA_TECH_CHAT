@@ -117,4 +117,63 @@ describe('ChatPage integrada', () => {
     expect(screen.getByText('Nova conversa')).toBeInTheDocument();
     expect(sendChat).toHaveBeenCalledOnce();
   });
+
+  it('permite enviar pelo teclado', async () => {
+    vi.mocked(sendChat).mockResolvedValue(contextualResponse);
+    const user = userEvent.setup();
+    render(<ChatPage />);
+
+    await user.click(screen.getByLabelText('Sua pergunta'));
+    await user.keyboard('Pergunta pelo teclado');
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    expect(await screen.findByText(contextualResponse.answer)).toBeInTheDocument();
+  });
+
+  it('mantém somente as dez mensagens mais recentes no payload', async () => {
+    vi.mocked(sendChat).mockResolvedValue(contextualResponse);
+    render(<ChatPage />);
+
+    for (let index = 1; index <= 7; index += 1) {
+      await ask(`Pergunta ${index}`);
+      await waitFor(() => expect(sendChat).toHaveBeenCalledTimes(index));
+      await waitFor(() => expect(screen.queryByText('Enviando…')).not.toBeInTheDocument());
+    }
+
+    const lastRequest = vi.mocked(sendChat).mock.calls[6]?.[0];
+    expect(lastRequest?.history).toHaveLength(10);
+    expect(lastRequest?.history[0]).toEqual({ role: 'user', content: 'Pergunta 2' });
+  });
+
+  it('repete uma solicitação com erro sem duplicar a mensagem do usuário', async () => {
+    vi.mocked(sendChat)
+      .mockRejectedValueOnce(new ApiError('Falha temporária.', 502))
+      .mockResolvedValueOnce(contextualResponse);
+    render(<ChatPage />);
+    const user = await ask('Pergunta única');
+    await screen.findByText('Falha temporária.');
+
+    await user.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+
+    expect(await screen.findByText(contextualResponse.answer)).toBeInTheDocument();
+    expect(screen.getAllByText('Pergunta única')).toHaveLength(1);
+    expect(sendChat).toHaveBeenCalledTimes(2);
+  });
+
+  it('renderiza Markdown e bloqueia URLs e HTML perigosos', async () => {
+    vi.mocked(sendChat).mockResolvedValue({
+      answer: '**Resposta segura** [link](javascript:alert(1)) <script>alert(2)</script>',
+      sources: [],
+      has_context: true,
+    });
+    const { container } = render(<ChatPage />);
+
+    await ask('Teste de segurança');
+
+    expect(await screen.findByText('Resposta segura')).toHaveProperty('tagName', 'STRONG');
+    expect(container.querySelector('script')).toBeNull();
+    expect(screen.getByText('link').closest('a')).not.toHaveAttribute('href');
+  });
 });

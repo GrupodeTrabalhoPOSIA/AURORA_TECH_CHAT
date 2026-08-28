@@ -1,4 +1,5 @@
 import type { ChatMessageView } from '@/features/chat/types/chat';
+import MarkdownContent from './MarkdownContent';
 
 interface ChatMessageProps {
   message: ChatMessageView;
@@ -14,7 +15,7 @@ function ChatMessage({ message }: ChatMessageProps) {
       </div>
       <div className="chat-message__body">
         <strong>{isAssistant ? 'Aurora' : 'Você'}</strong>
-        <p>{message.content}</p>
+        {isAssistant ? <MarkdownContent content={message.content} /> : <p>{message.content}</p>}
         {isAssistant && message.hasContext === false ? (
           <span className="no-context-label">Sem contexto suficiente</span>
         ) : null}

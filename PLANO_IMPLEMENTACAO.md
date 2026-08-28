@@ -49,7 +49,7 @@ Ao executar este plano, o agente deverá:
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
 - [x] Ciclo 10 — Frontend: chat integrado
 - [x] Ciclo 11 — Backend: robustez, testes e avaliação RAG
-- [ ] Ciclo 12 — Frontend: testes, responsividade e acabamento
+- [x] Ciclo 12 — Frontend: testes, responsividade e acabamento
 - [ ] Validação final do MVP
 
 ## 4. Ciclos de implementação
@@ -383,23 +383,23 @@ O ciclo estará concluído quando os testes passarem, os erros estiverem padroni
 
 ### Implementação
 
-- [ ] Revisar a identidade visual da Aurora Tech.
-- [ ] Ajustar o layout para celular e desktop.
-- [ ] Garantir navegação por teclado nos controles principais.
-- [ ] Adicionar rótulos acessíveis aos campos e botões.
-- [ ] Sanitizar qualquer Markdown renderizado.
-- [ ] Completar testes dos componentes do chat.
-- [ ] Completar testes da tela de documentos.
-- [ ] Completar testes de integração com API simulada.
-- [ ] Remover código, estilos e dependências não utilizados.
+- [x] Revisar a identidade visual da Aurora Tech.
+- [x] Ajustar o layout para celular e desktop.
+- [x] Garantir navegação por teclado nos controles principais.
+- [x] Adicionar rótulos acessíveis aos campos e botões.
+- [x] Sanitizar qualquer Markdown renderizado.
+- [x] Completar testes dos componentes do chat.
+- [x] Completar testes da tela de documentos.
+- [x] Completar testes de integração com API simulada.
+- [x] Remover código, estilos e dependências não utilizados.
 
 ### Validação
 
-- [ ] Executar todos os testes do frontend sem falhas.
-- [ ] Executar lint e verificação de tipos.
-- [ ] Gerar o build de produção.
-- [ ] Verificar manualmente as principais larguras de tela.
-- [ ] Registrar os comandos executados no diário.
+- [x] Executar todos os testes do frontend sem falhas.
+- [x] Executar lint e verificação de tipos.
+- [x] Gerar o build de produção.
+- [x] Verificar manualmente as principais larguras de tela.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -555,3 +555,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `python -m pytest -q` — 38 testes aprovados; `python -m compileall -q app evaluation` — aprovado; `python evaluation/evaluate_rag.py` com embeddings reais — 4/4 casos aprovados; varredura por padrão de chave OpenRouter — nenhuma ocorrência; arquivos `.env` confirmados no `.gitignore`.
 - Pendências: nenhuma no Ciclo 11.
 - Próximo ciclo: Ciclo 12 — Frontend: testes, responsividade e acabamento
+
+### 2026-08-27 — Ciclo 12
+
+- Status: concluído.
+- Implementado: Markdown seguro com `react-markdown` e `rehype-sanitize`, rótulos acessíveis, foco por teclado, ajustes móveis, lint ESLint, testes ampliados de chat/documentos e remoção de estilos obsoletos.
+- Arquivos principais: `FRONTEND/src/features/chat/components/MarkdownContent.tsx`, `FRONTEND/src/features/chat/components/ChatMessage.tsx`, `FRONTEND/src/pages/ChatPage.test.tsx`, `FRONTEND/src/pages/KnowledgeBasePage.test.tsx`, `FRONTEND/eslint.config.js`, `FRONTEND/src/styles/global.css`.
+- Validações: `npm test` — 16 testes aprovados; `npm run lint` — sem avisos; `npm run typecheck` — aprovado; `npm run build` — aprovado com 221 módulos; inspeção visual em 1440×900 e 360×800 nas páginas Chat e Base de conhecimento, sem overflow horizontal.
+- Pendências: nenhuma no Ciclo 12.
+- Próxima etapa: validação final do MVP.

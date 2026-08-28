@@ -8,6 +8,7 @@ import {
   listDocuments,
   uploadDocument,
 } from '@/features/documents/api/documentApi';
+import { ApiError } from '@/services/apiClient';
 import KnowledgeBasePage from './KnowledgeBasePage';
 
 vi.mock('@/features/documents/api/documentApi', () => ({
@@ -90,5 +91,47 @@ describe('KnowledgeBasePage integrada', () => {
 
     await waitFor(() => expect(deleteDocument).toHaveBeenCalledWith('document-1'));
     expect(await screen.findByText('Nenhum documento adicionado')).toBeInTheDocument();
+  });
+
+  it('permite tentar novamente quando a listagem falha', async () => {
+    vi.mocked(listDocuments)
+      .mockRejectedValueOnce(new ApiError('API indisponível.', 503))
+      .mockResolvedValueOnce([document]);
+    const user = userEvent.setup();
+    render(<KnowledgeBasePage />);
+
+    expect(await screen.findByText('A lista não pôde ser carregada.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+
+    expect(await screen.findByText('apresentacao-aurora.pdf')).toBeInTheDocument();
+    expect(listDocuments).toHaveBeenCalledTimes(2);
+  });
+
+  it('exibe o erro de duplicidade devolvido pelo backend', async () => {
+    vi.mocked(uploadDocument).mockRejectedValueOnce(
+      new ApiError('Este documento já existe na base de conhecimento.', 409, 'DUPLICATE_DOCUMENT'),
+    );
+    const { container } = render(<KnowledgeBasePage />);
+    const file = new File(['Aurora Tech'], 'duplicado.txt', { type: 'text/plain' });
+    await screen.findByText('apresentacao-aurora.pdf');
+
+    fireEvent.change(getFileInput(container), { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar à base' }));
+
+    expect(
+      await screen.findByText('Este documento já existe na base de conhecimento.'),
+    ).toBeInTheDocument();
+  });
+
+  it('preserva o documento quando a remoção não é confirmada', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+    const user = userEvent.setup();
+    render(<KnowledgeBasePage />);
+    await screen.findByText('apresentacao-aurora.pdf');
+
+    await user.click(screen.getByRole('button', { name: 'Remover apresentacao-aurora.pdf' }));
+
+    expect(deleteDocument).not.toHaveBeenCalled();
+    expect(screen.getByText('apresentacao-aurora.pdf')).toBeInTheDocument();
   });
 });

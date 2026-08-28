@@ -38,7 +38,9 @@ textarea:disabled {
 }
 
 button:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+input:focus-visible,
+a:focus-visible {
   outline: 3px solid rgba(28, 163, 147, 0.35);
   outline-offset: 3px;
 }
@@ -248,34 +250,6 @@ h1 {
   line-height: 1.7;
 }
 
-.suggestion-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.suggestion-card {
-  display: flex;
-  min-height: 88px;
-  padding: 17px;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  color: #385259;
-  text-align: left;
-  line-height: 1.4;
-  border: 1px solid rgba(25, 94, 99, 0.13);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 12px 32px rgba(23, 67, 72, 0.05);
-  opacity: 1;
-}
-
-.suggestion-card span:last-child {
-  color: #1b9c8d;
-  font-size: 1.15rem;
-}
-
 .composer {
   display: flex;
   width: min(100%, 800px);
@@ -370,10 +344,34 @@ h1 {
   font-size: 0.75rem;
 }
 
-.chat-message__body p {
+.chat-message__body p,
+.markdown-content p {
   margin: 5px 0 0;
   color: #40585e;
   line-height: 1.55;
+}
+
+.markdown-content > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 8px 0 0;
+  padding-left: 22px;
+  color: #40585e;
+  line-height: 1.55;
+}
+
+.markdown-content code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #e8f1f1;
+}
+
+.markdown-content a {
+  color: #147d72;
+  text-underline-offset: 2px;
 }
 
 .source-list {
@@ -476,12 +474,6 @@ h1 {
 .composer button:disabled,
 .empty-state button:disabled {
   background: #9bbab6;
-}
-
-.development-note {
-  margin: 10px 0 0;
-  color: #8a9a9d;
-  font-size: 0.76rem;
 }
 
 .knowledge-page {
@@ -822,16 +814,23 @@ h1 {
     padding-top: 50px;
   }
 
-  .suggestion-list {
-    grid-template-columns: 1fr;
+  .chat-message__body {
+    max-width: 88%;
   }
 
-  .suggestion-card {
-    min-height: auto;
+  .chat-toolbar {
+    margin-top: 0;
   }
 
   .composer {
     margin-top: 40px;
+    padding-left: 14px;
+    gap: 8px;
+  }
+
+  .composer button {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 
   .document-upload {
