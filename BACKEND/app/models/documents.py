@@ -1,5 +1,7 @@
 """Modelos internos do processamento de documentos."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -29,5 +31,16 @@ class ProcessedDocument(BaseModel):
     name: str
     document_type: str
     content_hash: str
+    file_size: int = Field(ge=0)
     chunks: list[DocumentChunk]
 
+
+class DocumentResponse(BaseModel):
+    """Resumo público de um documento indexado."""
+
+    id: str
+    name: str
+    document_type: str
+    chunk_count: int = Field(ge=0)
+    file_size: int = Field(ge=0)
+    created_at: datetime

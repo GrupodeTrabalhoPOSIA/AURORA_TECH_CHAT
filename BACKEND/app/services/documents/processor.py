@@ -88,6 +88,7 @@ class DocumentProcessor:
             name=Path(filename).name,
             document_type=extension.removeprefix("."),
             content_hash=content_hash,
+            file_size=len(content),
             chunks=chunks,
         )
 
@@ -158,4 +159,3 @@ class DocumentProcessor:
             start = max(end - self.settings.chunk_overlap, start + 1)
 
         return chunks
-

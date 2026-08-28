@@ -44,7 +44,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
 - [x] Ciclo 05 — Backend: leitura e divisão de documentos
 - [x] Ciclo 06 — Frontend: tela da base de conhecimento
-- [ ] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
+- [x] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
 - [ ] Ciclo 08 — Frontend: integração da base de conhecimento
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
 - [ ] Ciclo 10 — Frontend: chat integrado
@@ -227,25 +227,25 @@ O ciclo estará concluído quando todos os estados da base de conhecimento puder
 
 ### Implementação
 
-- [ ] Configurar o modelo local de embeddings.
-- [ ] Criar um serviço de embeddings isolado das rotas HTTP.
-- [ ] Configurar persistência local do ChromaDB.
-- [ ] Criar uma coleção para os documentos da Aurora Tech.
-- [ ] Salvar texto, embedding e metadados de cada trecho.
-- [ ] Evitar indexação duplicada pelo hash do documento.
-- [ ] Implementar `POST /api/v1/documents`.
-- [ ] Implementar `GET /api/v1/documents`.
-- [ ] Implementar `DELETE /api/v1/documents/{document_id}`.
-- [ ] Garantir que a remoção exclua todos os trechos do documento.
+- [x] Configurar o modelo local de embeddings.
+- [x] Criar um serviço de embeddings isolado das rotas HTTP.
+- [x] Configurar persistência local do ChromaDB.
+- [x] Criar uma coleção para os documentos da Aurora Tech.
+- [x] Salvar texto, embedding e metadados de cada trecho.
+- [x] Evitar indexação duplicada pelo hash do documento.
+- [x] Implementar `POST /api/v1/documents`.
+- [x] Implementar `GET /api/v1/documents`.
+- [x] Implementar `DELETE /api/v1/documents/{document_id}`.
+- [x] Garantir que a remoção exclua todos os trechos do documento.
 
 ### Validação
 
-- [ ] Testar upload e indexação de um documento válido.
-- [ ] Reiniciar o backend e confirmar a persistência dos vetores.
-- [ ] Testar listagem e rejeição de duplicidade.
-- [ ] Testar remoção completa do documento.
-- [ ] Confirmar os contratos no Swagger.
-- [ ] Registrar os comandos executados no diário.
+- [x] Testar upload e indexação de um documento válido.
+- [x] Reiniciar o backend e confirmar a persistência dos vetores.
+- [x] Testar listagem e rejeição de duplicidade.
+- [x] Testar remoção completa do documento.
+- [x] Confirmar os contratos no Swagger.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -510,3 +510,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `npm test` — 3 testes aprovados; `npm run typecheck` — aprovado; `npm run build` — aprovado com 50 módulos; revisão dos breakpoints de celular e desktop no CSS.
 - Pendências: os dados permanecem simulados até a integração do Ciclo 08.
 - Próximo ciclo: Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
+
+### 2026-08-27 — Ciclo 07
+
+- Status: concluído
+- Implementado: serviço de Sentence Transformers carregado sob demanda, ChromaDB persistente, coleção da Aurora Tech, catálogo por metadados, prevenção de duplicidade e endpoints de upload/listagem/exclusão.
+- Arquivos principais: `BACKEND/app/services/embeddings/`, `BACKEND/app/services/vector_store/`, `BACKEND/app/services/documents/service.py`, `BACKEND/app/api/dependencies.py`, `BACKEND/app/api/v1/routes/documents.py`, `BACKEND/tests/test_document_api.py`.
+- Validações: `python -m pytest -q` — 24 testes aprovados; ciclo completo de API, duplicidade, exclusão e reabertura do Chroma; modelo real `paraphrase-multilingual-MiniLM-L12-v2` carregado com vetor de dimensão 384 e norma 1.0.
+- Pendências: nenhuma no Ciclo 07.
+- Próximo ciclo: Ciclo 08 — Frontend: integração da base de conhecimento
