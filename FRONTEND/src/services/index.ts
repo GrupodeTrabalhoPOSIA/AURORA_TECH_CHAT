@@ -1,3 +1,2 @@
-/** Serviços HTTP serão adicionados nos ciclos de integração. */
-export {};
+export { ApiError, apiRequest } from './apiClient';
 

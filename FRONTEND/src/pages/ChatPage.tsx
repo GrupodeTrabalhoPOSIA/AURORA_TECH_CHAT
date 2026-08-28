@@ -1,13 +1,31 @@
-const suggestions = [
-  'O que é a Aurora Tech?',
-  'Quais serviços a empresa oferece?',
-  'Como posso entrar em contato?',
+import { ChatComposer, ChatLoading, ChatMessage } from '@/features/chat';
+import type { ChatMessageView } from '@/features/chat';
+
+const mockMessages: ChatMessageView[] = [
+  {
+    id: 'mock-user',
+    role: 'user',
+    content: 'Quais serviços a Aurora Tech oferece?',
+  },
+  {
+    id: 'mock-assistant',
+    role: 'assistant',
+    content:
+      'Quando a base estiver conectada, apresentarei aqui uma resposta fundamentada nos documentos da empresa.',
+    sources: [
+      {
+        document_id: 'mock-source',
+        document_name: 'apresentacao-aurora.pdf',
+        page: 3,
+      },
+    ],
+  },
 ];
 
 function ChatPage() {
   return (
     <section className="chat-page" aria-labelledby="chat-title">
-      <div className="chat-welcome">
+      <div className="chat-welcome chat-welcome--compact">
         <span className="eyebrow">Conhecimento que conversa</span>
         <h1 id="chat-title">Olá! Sou o assistente da Aurora Tech.</h1>
         <p>
@@ -15,31 +33,16 @@ function ChatPage() {
           documentos cadastrados na base de conhecimento.
         </p>
 
-        <div className="suggestion-list" aria-label="Sugestões de perguntas">
-          {suggestions.map((suggestion) => (
-            <button className="suggestion-card" type="button" key={suggestion} disabled>
-              <span>{suggestion}</span>
-              <span aria-hidden="true">↗</span>
-            </button>
-          ))}
-        </div>
       </div>
 
-      <form className="composer" aria-label="Enviar uma pergunta">
-        <label className="sr-only" htmlFor="chat-message">
-          Sua pergunta
-        </label>
-        <textarea
-          id="chat-message"
-          name="message"
-          rows={1}
-          placeholder="Digite sua pergunta sobre a Aurora Tech…"
-          disabled
-        />
-        <button type="submit" disabled>
-          Enviar
-        </button>
-      </form>
+      <div className="chat-thread" aria-label="Prévia da conversa">
+        {mockMessages.map((message) => (
+          <ChatMessage message={message} key={message.id} />
+        ))}
+        <ChatLoading />
+      </div>
+
+      <ChatComposer disabled />
 
       <p className="development-note">
         A interação do chat será habilitada nos próximos ciclos.
@@ -49,4 +52,3 @@ function ChatPage() {
 }
 
 export default ChatPage;
-

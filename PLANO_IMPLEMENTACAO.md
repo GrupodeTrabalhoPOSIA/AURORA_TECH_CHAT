@@ -41,7 +41,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 01 — Backend: fundação da API
 - [x] Ciclo 02 — Frontend: fundação da interface
 - [x] Ciclo 03 — Backend: contratos e configurações
-- [ ] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
+- [x] Ciclo 04 — Frontend: estrutura visual e comunicação com a API
 - [ ] Ciclo 05 — Backend: leitura e divisão de documentos
 - [ ] Ciclo 06 — Frontend: tela da base de conhecimento
 - [ ] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
@@ -142,20 +142,20 @@ O ciclo estará concluído quando os contratos do chat e as configurações esti
 
 ### Implementação
 
-- [ ] Criar os tipos TypeScript equivalentes aos contratos públicos da API.
-- [ ] Criar um cliente HTTP centralizado usando a URL definida no ambiente.
-- [ ] Criar um componente de estado da API na interface.
-- [ ] Consultar `GET /api/v1/health` ao carregar a aplicação ou quando solicitado.
-- [ ] Exibir estados de API disponível e indisponível.
-- [ ] Criar componentes visuais iniciais de mensagem, campo de texto, carregamento e erro.
-- [ ] Criar dados simulados somente para visualizar a conversa antes da integração real.
+- [x] Criar os tipos TypeScript equivalentes aos contratos públicos da API.
+- [x] Criar um cliente HTTP centralizado usando a URL definida no ambiente.
+- [x] Criar um componente de estado da API na interface.
+- [x] Consultar `GET /api/v1/health` ao carregar a aplicação ou quando solicitado.
+- [x] Exibir estados de API disponível e indisponível.
+- [x] Criar componentes visuais iniciais de mensagem, campo de texto, carregamento e erro.
+- [x] Criar dados simulados somente para visualizar a conversa antes da integração real.
 
 ### Validação
 
-- [ ] Confirmar comunicação entre React e FastAPI.
-- [ ] Confirmar tratamento visual quando o backend estiver desligado.
-- [ ] Confirmar que a aplicação continua gerando build válido.
-- [ ] Registrar os comandos executados no diário.
+- [x] Confirmar comunicação entre React e FastAPI.
+- [x] Confirmar tratamento visual quando o backend estiver desligado.
+- [x] Confirmar que a aplicação continua gerando build válido.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -483,3 +483,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `python -m pytest -q` — 10 testes aprovados; validação de mensagem vazia, mensagem longa, histórico longo, proteção do segredo e schemas do chat no OpenAPI.
 - Pendências: o endpoint `/chat` retorna `CHAT_NOT_IMPLEMENTED` intencionalmente até o Ciclo 09.
 - Próximo ciclo: Ciclo 04 — Frontend: estrutura visual e comunicação com a API
+
+### 2026-08-27 — Ciclo 04
+
+- Status: concluído
+- Implementado: contratos TypeScript, cliente HTTP centralizado, configuração pública da API, monitor de saúde com nova tentativa, estados online/offline e componentes visuais reutilizáveis do chat com dados simulados.
+- Arquivos principais: `FRONTEND/src/types/api.ts`, `FRONTEND/src/services/apiClient.ts`, `FRONTEND/src/features/health/`, `FRONTEND/src/features/chat/`, `FRONTEND/src/pages/ChatPage.tsx`, `FRONTEND/src/styles/global.css`.
+- Validações: `npm run typecheck` — aprovado; `npm run build` — aprovado com 46 módulos; chamada no formato do frontend para `/api/v1/health` — HTTP 200; preflight CORS — HTTP 200 com origem `http://localhost:5173`.
+- Pendências: dados do chat permanecem simulados por desenho do plano até o Ciclo 10.
+- Próximo ciclo: Ciclo 05 — Backend: leitura e divisão de documentos
