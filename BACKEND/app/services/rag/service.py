@@ -7,7 +7,7 @@ from app.models.chat import ChatRequest, ChatResponse, ChatSource
 from app.models.rag import LLMMessage, RetrievedChunk
 from app.services.embeddings import EmbeddingService
 from app.services.llm import LLMClient
-from app.services.vector_store import ChromaVectorStore
+from app.services.vector_store import VectorStore
 
 NO_CONTEXT_ANSWER = (
     "Não encontrei informações suficientes na base de conhecimento da Aurora Tech "
@@ -23,7 +23,7 @@ class RetrievalService:
         *,
         settings: Settings,
         embedding_service: EmbeddingService,
-        vector_store: ChromaVectorStore,
+        vector_store: VectorStore,
     ) -> None:
         self.settings = settings
         self.embedding_service = embedding_service
@@ -31,7 +31,11 @@ class RetrievalService:
 
     def retrieve(self, question: str) -> list[RetrievedChunk]:
         embedding = self.embedding_service.embed_query(question)
-        candidates = self.vector_store.search(embedding, self.settings.retrieval_top_k)
+        candidates = self.vector_store.search(
+            embedding,
+            self.settings.retrieval_top_k,
+            self.settings.retrieval_min_relevance,
+        )
         selected: list[RetrievedChunk] = []
         context_size = 0
         for chunk in candidates:

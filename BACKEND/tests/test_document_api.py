@@ -1,7 +1,5 @@
 """Testes integrados dos endpoints e da persistência vetorial."""
 
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,22 +7,21 @@ from app.api.dependencies import get_document_service
 from app.core.config import Settings
 from app.main import app
 from app.services.documents import DocumentProcessor, DocumentService
-from app.services.vector_store import ChromaVectorStore
-from tests.fakes import FakeEmbeddingService
+from tests.fakes import FakeEmbeddingService, InMemoryVectorStore
 
 
-def make_service(path: Path) -> DocumentService:
-    settings = Settings(_env_file=None, chroma_persist_directory=path)
+def make_service(store: InMemoryVectorStore | None = None) -> DocumentService:
+    settings = Settings(_env_file=None)
     return DocumentService(
         processor=DocumentProcessor(settings),
         embedding_service=FakeEmbeddingService(),
-        vector_store=ChromaVectorStore(path),
+        vector_store=store or InMemoryVectorStore(),
     )
 
 
 @pytest.fixture
-def client(tmp_path: Path) -> TestClient:
-    service = make_service(tmp_path / "chroma")
+def client() -> TestClient:
+    service = make_service()
     app.dependency_overrides[get_document_service] = lambda: service
     with TestClient(app) as test_client:
         yield test_client
@@ -65,19 +62,18 @@ def test_delete_unknown_document_returns_404(client: TestClient) -> None:
     assert response.json()["detail"]["code"] == "DOCUMENT_NOT_FOUND"
 
 
-def test_vectors_persist_after_store_is_reopened(tmp_path: Path) -> None:
-    persist_directory = tmp_path / "persistent-chroma"
-    service = make_service(persist_directory)
+def test_vectors_remain_available_through_shared_store() -> None:
+    store = InMemoryVectorStore()
+    service = make_service(store)
     indexed = service.index_document(
         filename="aurora.md",
         content=b"# Aurora Tech\n\nConhecimento persistente.",
         content_type="text/markdown",
     )
 
-    reopened = make_service(persist_directory)
-    documents = reopened.list_documents()
+    another_service_instance = make_service(store)
+    documents = another_service_instance.list_documents()
 
     assert len(documents) == 1
     assert documents[0].id == indexed.id
-    assert reopened.vector_store.collection.count() == indexed.chunk_count
-
+    assert len(store.chunks) == indexed.chunk_count

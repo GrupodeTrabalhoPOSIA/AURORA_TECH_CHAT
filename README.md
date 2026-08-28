@@ -1,6 +1,6 @@
 # Aurora Tech Chatbot
 
-MVP acadêmico de um chatbot RAG para responder perguntas sobre a empresa fictícia Aurora Tech. Os documentos são transformados em embeddings locais, persistidos no ChromaDB e recuperados antes de cada resposta gerada por um modelo acessado pela API do OpenRouter.
+MVP acadêmico de um chatbot RAG para responder perguntas sobre a empresa fictícia Aurora Tech. Os documentos são transformados em embeddings locais, persistidos no Supabase com `pgvector` e recuperados antes de cada resposta gerada por um modelo acessado pela API do OpenRouter.
 
 O projeto não possui autenticação, perfis de usuário nem persistência de conversas. O histórico curto existe somente na página aberta no navegador.
 
@@ -10,9 +10,9 @@ O projeto não possui autenticação, perfis de usuário nem persistência de co
 React + TypeScript
         │ HTTP /api/v1
         ▼
-FastAPI ──► extração e chunking ──► Sentence Transformers ──► ChromaDB local
-   │                                                        │
-   └──────── pergunta + contexto recuperado ◄───────────────┘
+FastAPI ──► extração e chunking ──► Sentence Transformers ──► Supabase / pgvector
+   │                                                         │
+   └──────── pergunta + contexto recuperado ◄────────────────┘
                          │
                          ▼
                   OpenRouter / LLM
@@ -23,6 +23,7 @@ FastAPI ──► extração e chunking ──► Sentence Transformers ──�
 - Python 3.11 a 3.14;
 - Node.js 20.19+ ou 22.12+;
 - uma chave da OpenRouter para gerar respostas;
+- um projeto Supabase para armazenar documentos e embeddings;
 - cerca de 2 GB livres para dependências e cache do modelo de embeddings.
 
 Na primeira execução, o Sentence Transformers baixa o modelo multilíngue configurado. Depois disso, os embeddings são gerados localmente.
@@ -40,13 +41,15 @@ python -m pip install -e ".[dev]"
 Copy-Item .env.example .env
 ```
 
-Edite `BACKEND/.env` e preencha:
+No painel do Supabase, abra **SQL Editor** e execute o arquivo `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql`. Depois, edite `BACKEND/.env` e preencha:
 
 ```dotenv
 OPENROUTER_API_KEY=sua-chave-local
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_sua-chave
 ```
 
-Não versione esse arquivo. A aplicação inicia e gerencia documentos sem a chave, mas retorna `MODEL_NOT_CONFIGURED` quando uma pergunta encontra contexto e precisa chamar o modelo.
+Não versione esse arquivo. Use a chave **Secret** do Supabase, ou `SUPABASE_SERVICE_ROLE_KEY` apenas em projetos legados. Essas chaves ficam somente no backend. Sem as credenciais do banco, as rotas de documentos e chat retornam `DATABASE_NOT_CONFIGURED`; sem a chave OpenRouter, uma pergunta com contexto retorna `MODEL_NOT_CONFIGURED`.
 
 Inicie a API:
 
@@ -72,6 +75,20 @@ npm run dev
 ```
 
 Acesse `http://localhost:5173`. Se o backend usar outra porta, altere `VITE_API_URL` em `FRONTEND/.env`.
+
+## Inicialização rápida no Windows
+
+Depois de instalar as dependências do backend e do frontend, execute na raiz:
+
+```powershell
+.\iniciar-local.bat
+```
+
+O arquivo prepara os `.env` ausentes, inicia backend e frontend em terminais separados e abre `http://localhost:5173`. Para verificar os pré-requisitos sem iniciar os servidores:
+
+```powershell
+.\iniciar-local.bat --check
+```
 
 ## Uso
 
@@ -103,6 +120,21 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 
 Todos esses valores podem ser alterados em `BACKEND/.env`. A justificativa e o conjunto de perguntas estão em `BACKEND/evaluation/`.
 
+O modelo padrão gera vetores com 384 dimensões, que corresponde ao tipo `vector(384)` da migração. Alterar o modelo exige uma nova migração e a reindexação dos documentos.
+
+## Configuração em produção
+
+No serviço que executa o FastAPI, configure como segredos:
+
+```dotenv
+OPENROUTER_API_KEY=...
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+FRONTEND_ORIGIN=https://aurora-tech-chat.vercel.app
+```
+
+Nenhuma variável do Supabase deve ser criada na Vercel do frontend. O React conversa somente com a API FastAPI.
+
 ## Testes e qualidade
 
 Backend:
@@ -128,10 +160,10 @@ npm run build
 
 ## Dados e segurança
 
-- `.env`, ambientes virtuais, `node_modules`, builds e banco Chroma local são ignorados pelo Git;
-- a chave OpenRouter permanece apenas no backend e nunca é enviada ao React;
+- `.env`, ambientes virtuais, `node_modules` e builds são ignorados pelo Git;
+- as chaves OpenRouter e Supabase permanecem apenas no backend e nunca são enviadas ao React;
 - logs registram método, rota, status e duração, sem corpos ou cabeçalhos;
 - respostas Markdown são renderizadas com sanitização;
-- documentos e embeddings ficam em `BACKEND/data/chroma` por padrão.
+- documentos e embeddings ficam no Postgres do Supabase, protegidos por RLS e sem acesso para os papéis públicos.
 
 Consulte [ESPECIFICACAO.md](./ESPECIFICACAO.md) para o escopo e [PLANO_IMPLEMENTACAO.md](./PLANO_IMPLEMENTACAO.md) para o histórico dos ciclos.

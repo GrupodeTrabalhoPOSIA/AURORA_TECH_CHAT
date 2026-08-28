@@ -3,8 +3,6 @@
 import math
 import unicodedata
 from io import BytesIO
-from pathlib import Path
-
 import pymupdf
 from docx import Document
 from fastapi.testclient import TestClient
@@ -14,8 +12,7 @@ from app.core.config import Settings
 from app.main import app
 from app.services.documents import DocumentProcessor, DocumentService
 from app.services.rag import ChatService, RetrievalService
-from app.services.vector_store import ChromaVectorStore
-from tests.fakes import FakeLLMClient
+from tests.fakes import FakeLLMClient, InMemoryVectorStore
 
 
 class TopicEmbeddingService:
@@ -58,15 +55,13 @@ def make_docx(text: str) -> bytes:
     return buffer.getvalue()
 
 
-def test_complete_document_chat_persistence_and_removal_flow(tmp_path: Path) -> None:
-    persist_directory = tmp_path / "mvp-chroma"
+def test_complete_document_chat_persistence_and_removal_flow() -> None:
     settings = Settings(
         _env_file=None,
-        chroma_persist_directory=persist_directory,
         retrieval_min_relevance=0.8,
     )
     embeddings = TopicEmbeddingService()
-    store = ChromaVectorStore(persist_directory)
+    store = InMemoryVectorStore()
     documents = DocumentService(
         processor=DocumentProcessor(settings),
         embedding_service=embeddings,
@@ -125,11 +120,6 @@ def test_complete_document_chat_persistence_and_removal_flow(tmp_path: Path) -> 
             )
             assert after_removal.json()["has_context"] is False
 
-        reopened = ChromaVectorStore(persist_directory)
-        try:
-            assert len(reopened.list_documents()) == 3
-        finally:
-            reopened.close()
+        assert len(store.list_documents()) == 3
     finally:
         app.dependency_overrides.clear()
-        store.close()

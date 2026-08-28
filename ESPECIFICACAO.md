@@ -17,7 +17,7 @@ O projeto será dividido em:
 - **Backend:** Python com FastAPI;
 - **Modelo de linguagem:** acessado pela OpenRouter;
 - **Embeddings:** modelo local compatível com português;
-- **Banco vetorial:** ChromaDB com persistência local.
+- **Banco vetorial:** Supabase Postgres com extensão pgvector.
 
 O sistema será simples, voltado à demonstração acadêmica e utilizado sem cadastro, login, perfis ou níveis de permissão.
 
@@ -76,7 +76,7 @@ Para manter o projeto acadêmico simples, não serão implementados inicialmente
 1. O usuário escreve uma pergunta no frontend.
 2. O frontend envia a pergunta e um histórico curto para o FastAPI.
 3. O backend gera o embedding da pergunta.
-4. O backend consulta o ChromaDB.
+4. O backend consulta o Supabase por similaridade vetorial.
 5. Os trechos mais relevantes são selecionados.
 6. O backend monta um prompt com instruções, contexto e pergunta.
 7. O prompt é enviado ao modelo configurado na OpenRouter.
@@ -89,7 +89,7 @@ Para manter o projeto acadêmico simples, não serão implementados inicialmente
 2. O backend valida e extrai o texto.
 3. O texto é dividido em trechos menores.
 4. Cada trecho é transformado em um embedding.
-5. Os trechos, embeddings e metadados são gravados no ChromaDB.
+5. Os trechos, embeddings e metadados são gravados no Supabase.
 6. O documento fica disponível para consultas do chatbot.
 
 ## 6. Arquitetura
@@ -99,7 +99,7 @@ flowchart LR
     U[Usuário] --> F[Frontend React]
     F -->|HTTP/JSON| B[Backend FastAPI]
     B --> E[Modelo de embeddings local]
-    E --> V[(ChromaDB)]
+    E --> V[(Supabase / pgvector)]
     B --> V
     B --> O[OpenRouter API]
     B --> D[Arquivos da base]
@@ -145,7 +145,7 @@ flowchart LR
 | LLM | OpenRouter API | Acesso a diferentes modelos por uma API única |
 | Embeddings | Sentence Transformers | Execução local sem custo por requisição |
 | Modelo inicial de embedding | `paraphrase-multilingual-MiniLM-L12-v2` | Suporte a português e tamanho adequado para demonstração |
-| Banco vetorial | ChromaDB persistente local | Instalação e uso simples para projeto acadêmico |
+| Banco vetorial | Supabase Postgres + pgvector | Persistência remota simples e compatível com hospedagem sem disco permanente |
 | Leitura de PDF | PyMuPDF | Extração simples de texto e número de página |
 | Leitura de DOCX | python-docx | Extração de conteúdo de documentos Word |
 | Requisições HTTP | httpx | Cliente HTTP compatível com FastAPI assíncrono |
@@ -280,7 +280,7 @@ Critérios para escolher o modelo:
 
 ## 11. Dados armazenados
 
-Não será necessário um banco relacional no MVP. O ChromaDB armazenará os trechos e seus metadados.
+O Postgres do Supabase será usado apenas como base vetorial e catálogo simples de documentos. Não haverá cadastro de usuários nem persistência de conversas.
 
 ### 11.1 Documento
 
@@ -429,7 +429,7 @@ AURORA_TEC_CHAT/
 │   │   ├── core/
 │   │   └── main.py
 │   ├── data/
-│   │   └── chroma/
+│   └── database/supabase/ # Migrações do banco vetorial
 │   ├── tests/
 │   ├── requirements.txt ou pyproject.toml
 │   └── .env.example
@@ -454,8 +454,9 @@ O backend deverá receber por variáveis de ambiente:
 - `OPENROUTER_API_KEY`: chave da OpenRouter;
 - `OPENROUTER_MODEL`: identificador do modelo de linguagem;
 - `FRONTEND_ORIGIN`: endereço permitido pelo CORS;
-- `CHROMA_PERSIST_DIRECTORY`: pasta de persistência do banco vetorial;
 - `EMBEDDING_MODEL`: modelo local de embeddings;
+- `SUPABASE_URL`: URL do projeto Supabase;
+- `SUPABASE_SECRET_KEY`: chave secreta usada somente pelo backend;
 - `RETRIEVAL_TOP_K`: quantidade máxima de trechos recuperados.
 
 Os nomes poderão ser ajustados na implementação. O arquivo `.env.example` deverá conter somente valores de exemplo.
@@ -514,7 +515,7 @@ O projeto será considerado concluído quando:
 
 1. o frontend React conseguir se comunicar com o FastAPI;
 2. um documento puder ser enviado e indexado;
-3. os embeddings forem armazenados no ChromaDB;
+3. os embeddings forem armazenados no Supabase;
 4. uma pergunta recuperar trechos relevantes;
 5. o backend enviar contexto e pergunta à OpenRouter;
 6. a resposta for exibida no chat;
@@ -538,7 +539,7 @@ O projeto será considerado concluído quando:
 - implementar leitura de documentos;
 - implementar chunking;
 - gerar embeddings;
-- integrar o ChromaDB;
+- integrar o Supabase com pgvector;
 - criar endpoints de documentos.
 
 ### Etapa 3 — Chat RAG
@@ -582,7 +583,6 @@ Antes da implementação, ainda deverão ser definidos:
 - O português será o idioma principal.
 - O modelo de linguagem será acessado pela OpenRouter.
 - Os embeddings serão gerados localmente.
-- O ChromaDB será executado com persistência local.
+- O Supabase será acessado somente pelo backend e manterá os dados entre implantações.
 - A conversa não será salva no backend.
 - A implementação só começará após a validação desta especificação.
-

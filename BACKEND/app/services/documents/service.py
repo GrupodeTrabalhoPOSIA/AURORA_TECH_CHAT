@@ -3,7 +3,7 @@
 from app.models.documents import DocumentResponse
 from app.services.documents.processor import DocumentProcessor
 from app.services.embeddings import EmbeddingService
-from app.services.vector_store import ChromaVectorStore
+from app.services.vector_store import VectorStore
 
 
 class DocumentService:
@@ -14,7 +14,7 @@ class DocumentService:
         *,
         processor: DocumentProcessor,
         embedding_service: EmbeddingService,
-        vector_store: ChromaVectorStore,
+        vector_store: VectorStore,
     ) -> None:
         self.processor = processor
         self.embedding_service = embedding_service
@@ -43,4 +43,3 @@ class DocumentService:
 
     def delete_document(self, document_id: str) -> None:
         self.vector_store.delete_document(document_id)
-

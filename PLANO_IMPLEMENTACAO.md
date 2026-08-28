@@ -1,7 +1,7 @@
 # Plano de Implementação — Aurora Tech Chatbot
 
 **Base:** [ESPECIFICACAO.md](./ESPECIFICACAO.md)  
-**Status geral:** MVP implementado e validado; chamada externa OpenRouter pendente de credencial
+**Status geral:** MVP implementado; Supabase integrado no código e implantação externa pendente de credenciais
 **Estratégia:** ciclos curtos alternando entre backend e frontend
 
 ## 1. Objetivo do plano
@@ -51,6 +51,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 11 — Backend: robustez, testes e avaliação RAG
 - [x] Ciclo 12 — Frontend: testes, responsividade e acabamento
 - [x] Validação final do MVP
+- [x] Migração técnica — Backend: Supabase/pgvector no lugar do ChromaDB
 
 ## 4. Ciclos de implementação
 
@@ -573,3 +574,11 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: instalação backend com `pip install -e ".[dev]"` e `pip check` — aprovada; `npm ci` — aprovado, 0 vulnerabilidades; backend e frontend iniciados juntos; health, Swagger, frontend e preflight CORS — HTTP 200; backend — 39 testes e avaliação 4/4; frontend — 16 testes, lint, tipos e build aprovados.
 - Pendências: executar a consulta externa real do Ciclo 09 quando uma `OPENROUTER_API_KEY` for fornecida em `BACKEND/.env`. O cliente, os erros e o endpoint estão validados com provedor simulado; a chave não faz parte do repositório.
 - Próximo ciclo: nenhum — MVP acadêmico implementado.
+
+### 2026-08-28 — Migração técnica para Supabase
+
+- Status: código concluído e validado; aplicação da migração no projeto remoto pendente de credenciais.
+- Implementado: substituição do ChromaDB pelo Supabase Postgres com pgvector, interface desacoplada de armazenamento, indexação transacional via RPC, busca cosseno com limiar no banco, RLS, permissões exclusivas do backend, migração idempotente e script de reversão.
+- Arquivos principais: `BACKEND/app/services/vector_store/`, `BACKEND/database/supabase/`, `BACKEND/app/core/config.py`, `BACKEND/tests/test_supabase_store.py`, `BACKEND/.env.example`.
+- Validações: `python -m pytest -q` — 46 testes aprovados; `python -m compileall -q app evaluation` — aprovado; `python -m pip check` — nenhuma dependência quebrada.
+- Pendências: executar `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql` no projeto Supabase e configurar `SUPABASE_URL` e `SUPABASE_SECRET_KEY` no serviço do backend.

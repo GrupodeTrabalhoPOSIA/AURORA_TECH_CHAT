@@ -14,10 +14,11 @@ htmlcov/
 .coverage
 
 # Local application data
-backend/data/chroma/
 backend/data/uploads/
-BACKEND/data/chroma*/
 BACKEND/data/uploads/
+# Legacy Chroma data kept only for local cleanup/migration history
+backend/data/chroma*/
+BACKEND/data/chroma*/
 
 # Node.js and Vite
 node_modules/

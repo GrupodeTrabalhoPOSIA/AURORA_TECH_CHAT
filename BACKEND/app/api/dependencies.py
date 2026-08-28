@@ -3,11 +3,12 @@
 from functools import lru_cache
 
 from app.core.config import get_settings
+from app.core.errors import AppError
 from app.services.documents import DocumentProcessor, DocumentService
 from app.services.embeddings import SentenceTransformerEmbeddingService
 from app.services.llm import OpenRouterClient
 from app.services.rag import ChatService, RetrievalService
-from app.services.vector_store import ChromaVectorStore
+from app.services.vector_store import SupabaseVectorStore
 
 
 @lru_cache
@@ -17,9 +18,17 @@ def get_embedding_service() -> SentenceTransformerEmbeddingService:
 
 
 @lru_cache
-def get_vector_store() -> ChromaVectorStore:
+def get_vector_store() -> SupabaseVectorStore:
     settings = get_settings()
-    return ChromaVectorStore(settings.chroma_persist_directory)
+    try:
+        url, secret_key = settings.require_supabase_credentials()
+    except ValueError as error:
+        raise AppError(
+            status_code=503,
+            code="DATABASE_NOT_CONFIGURED",
+            message="O banco Supabase ainda não foi configurado no backend.",
+        ) from error
+    return SupabaseVectorStore(url, secret_key)
 
 
 @lru_cache

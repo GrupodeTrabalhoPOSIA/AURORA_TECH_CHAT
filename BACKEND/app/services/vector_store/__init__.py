@@ -1,6 +1,6 @@
 """Persistência e busca na base vetorial."""
 
-from app.services.vector_store.chroma_store import ChromaVectorStore
+from app.services.vector_store.base import VectorStore
+from app.services.vector_store.supabase_store import SupabaseVectorStore
 
-__all__ = ["ChromaVectorStore"]
-
+__all__ = ["SupabaseVectorStore", "VectorStore"]

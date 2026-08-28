@@ -1,6 +1,6 @@
 # Avaliação RAG do MVP
 
-Esta avaliação verifica a recuperação de fontes antes da chamada ao modelo. Ela usa o modelo real de embeddings configurado, uma coleção Chroma temporária, três perguntas respondíveis e uma pergunta sem relação com a base.
+Esta avaliação verifica a recuperação de fontes antes da chamada ao modelo. Ela usa o modelo real de embeddings configurado e um armazenamento isolado em memória, sem escrever no projeto Supabase, com três perguntas respondíveis e uma pergunta sem relação com a base.
 
 ## Resultado de referência
 

@@ -1,8 +1,6 @@
 """Configuração tipada da aplicação a partir do ambiente."""
 
 from functools import lru_cache
-from pathlib import Path
-
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -30,7 +28,9 @@ class Settings(BaseSettings):
     openrouter_referer: str = "http://localhost:5173"
     openrouter_app_title: str = "Aurora Tech Chatbot"
 
-    chroma_persist_directory: Path = Path("data/chroma")
+    supabase_url: str | None = None
+    supabase_secret_key: SecretStr | None = None
+    supabase_service_role_key: SecretStr | None = None
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     retrieval_top_k: int = Field(default=5, ge=1, le=20)
     retrieval_min_relevance: float = Field(default=0.35, ge=0, le=1)
@@ -42,10 +42,16 @@ class Settings(BaseSettings):
     max_history_messages: int = Field(default=10, ge=0, le=50)
     max_upload_size_mb: int = Field(default=10, ge=1, le=100)
 
-    @field_validator("openrouter_api_key", mode="before")
+    @field_validator(
+        "openrouter_api_key",
+        "supabase_url",
+        "supabase_secret_key",
+        "supabase_service_role_key",
+        mode="before",
+    )
     @classmethod
-    def empty_api_key_is_none(cls, value: object) -> object:
-        """Trata chave vazia do arquivo de exemplo como ausente."""
+    def empty_configuration_is_none(cls, value: object) -> object:
+        """Trata valores vazios do arquivo de exemplo como ausentes."""
         if isinstance(value, str) and not value.strip():
             return None
         return value
@@ -62,6 +68,15 @@ class Settings(BaseSettings):
         if self.openrouter_api_key is None:
             raise ValueError("OPENROUTER_API_KEY não foi configurada.")
         return self.openrouter_api_key.get_secret_value()
+
+    def require_supabase_credentials(self) -> tuple[str, str]:
+        """Retorna URL e chave secreta apenas quando o banco for utilizado."""
+        key = self.supabase_secret_key or self.supabase_service_role_key
+        if self.supabase_url is None or key is None:
+            raise ValueError(
+                "SUPABASE_URL e SUPABASE_SECRET_KEY não foram configuradas."
+            )
+        return self.supabase_url, key.get_secret_value()
 
 
 @lru_cache

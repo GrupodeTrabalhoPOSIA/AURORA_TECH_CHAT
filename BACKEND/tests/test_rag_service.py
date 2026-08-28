@@ -1,8 +1,6 @@
 """Testes da recuperação, prompt e política de ausência de contexto."""
 
 import asyncio
-from pathlib import Path
-
 from fastapi.testclient import TestClient
 
 from app.api.dependencies import get_chat_service
@@ -11,19 +9,17 @@ from app.main import app
 from app.models.chat import ChatHistoryMessage, ChatRequest
 from app.services.documents import DocumentProcessor, DocumentService
 from app.services.rag import ChatService, RetrievalService
-from app.services.vector_store import ChromaVectorStore
-from tests.fakes import FakeEmbeddingService, FakeLLMClient
+from tests.fakes import FakeEmbeddingService, FakeLLMClient, InMemoryVectorStore
 
 
-def build_services(path: Path, **settings_overrides: object) -> tuple[DocumentService, RetrievalService]:
+def build_services(**settings_overrides: object) -> tuple[DocumentService, RetrievalService]:
     settings = Settings(
         _env_file=None,
-        chroma_persist_directory=path,
         retrieval_min_relevance=0.99,
         **settings_overrides,
     )
     embeddings = FakeEmbeddingService()
-    store = ChromaVectorStore(path)
+    store = InMemoryVectorStore()
     documents = DocumentService(
         processor=DocumentProcessor(settings),
         embedding_service=embeddings,
@@ -37,8 +33,8 @@ def build_services(path: Path, **settings_overrides: object) -> tuple[DocumentSe
     return documents, retrieval
 
 
-def test_retrieves_a_known_chunk_with_source_metadata(tmp_path: Path) -> None:
-    documents, retrieval = build_services(tmp_path / "chroma")
+def test_retrieves_a_known_chunk_with_source_metadata() -> None:
+    documents, retrieval = build_services()
     content = "A Aurora Tech oferece consultoria em transformação digital."
     indexed = documents.index_document(
         filename="servicos.txt",
@@ -54,8 +50,8 @@ def test_retrieves_a_known_chunk_with_source_metadata(tmp_path: Path) -> None:
     assert chunks[0].relevance > 0.99
 
 
-def test_prompt_contains_context_history_and_question_without_secret(tmp_path: Path) -> None:
-    documents, retrieval = build_services(tmp_path / "chroma")
+def test_prompt_contains_context_history_and_question_without_secret() -> None:
+    documents, retrieval = build_services()
     content = "A Aurora Tech atende pequenas e médias empresas."
     documents.index_document(
         filename="empresa.md",
@@ -82,8 +78,8 @@ def test_prompt_contains_context_history_and_question_without_secret(tmp_path: P
     assert "Bearer" not in prompt
 
 
-def test_does_not_call_model_when_collection_has_no_context(tmp_path: Path) -> None:
-    _, retrieval = build_services(tmp_path / "empty")
+def test_does_not_call_model_when_collection_has_no_context() -> None:
+    _, retrieval = build_services()
     llm = FakeLLMClient()
     service = ChatService(retrieval_service=retrieval, llm_client=llm)
 
@@ -97,9 +93,8 @@ def test_does_not_call_model_when_collection_has_no_context(tmp_path: Path) -> N
     assert llm.calls == []
 
 
-def test_context_respects_configured_character_limit(tmp_path: Path) -> None:
+def test_context_respects_configured_character_limit() -> None:
     documents, retrieval = build_services(
-        tmp_path / "limited",
         max_context_characters=500,
         chunk_size=200,
         chunk_overlap=20,
@@ -116,8 +111,8 @@ def test_context_respects_configured_character_limit(tmp_path: Path) -> None:
     assert sum(len(chunk.content) for chunk in chunks) <= 500
 
 
-def test_chat_endpoint_uses_retrieval_and_simulated_openrouter(tmp_path: Path) -> None:
-    documents, retrieval = build_services(tmp_path / "endpoint")
+def test_chat_endpoint_uses_retrieval_and_simulated_openrouter() -> None:
+    documents, retrieval = build_services()
     content = "O suporte da Aurora Tech funciona em horário comercial."
     documents.index_document(
         filename="suporte.txt",
