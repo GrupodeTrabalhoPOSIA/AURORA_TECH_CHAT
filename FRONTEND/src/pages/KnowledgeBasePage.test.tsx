@@ -1,8 +1,29 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { KnowledgeDocument } from '@/features/documents';
+import {
+  deleteDocument,
+  listDocuments,
+  uploadDocument,
+} from '@/features/documents/api/documentApi';
 import KnowledgeBasePage from './KnowledgeBasePage';
+
+vi.mock('@/features/documents/api/documentApi', () => ({
+  listDocuments: vi.fn(),
+  uploadDocument: vi.fn(),
+  deleteDocument: vi.fn(),
+}));
+
+const document: KnowledgeDocument = {
+  id: 'document-1',
+  name: 'apresentacao-aurora.pdf',
+  type: 'pdf',
+  chunkCount: 8,
+  size: 184_320,
+  createdAt: '2026-08-27T12:00:00Z',
+};
 
 function getFileInput(container: HTMLElement): HTMLInputElement {
   const input = container.querySelector<HTMLInputElement>('input[type="file"]');
@@ -12,48 +33,62 @@ function getFileInput(container: HTMLElement): HTMLInputElement {
   return input;
 }
 
-describe('KnowledgeBasePage', () => {
+describe('KnowledgeBasePage integrada', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(listDocuments).mockResolvedValue([document]);
+    vi.mocked(uploadDocument).mockResolvedValue({
+      ...document,
+      id: 'document-2',
+      name: 'empresa.txt',
+      type: 'txt',
+      chunkCount: 1,
+      size: 11,
+    });
+    vi.mocked(deleteDocument).mockResolvedValue(undefined);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
+  it('carrega a lista real pelo serviço', async () => {
+    render(<KnowledgeBasePage />);
+
+    expect(screen.getByText('Carregando documentos…')).toBeInTheDocument();
+    expect(await screen.findByText('apresentacao-aurora.pdf')).toBeInTheDocument();
+    expect(listDocuments).toHaveBeenCalledOnce();
   });
 
-  it('aceita um formato suportado e inicia o processamento', async () => {
-    vi.useFakeTimers();
+  it('envia um arquivo aceito e atualiza a lista', async () => {
     const { container } = render(<KnowledgeBasePage />);
     const file = new File(['Aurora Tech'], 'empresa.txt', { type: 'text/plain' });
+    await screen.findByText('apresentacao-aurora.pdf');
 
     fireEvent.change(getFileInput(container), { target: { files: [file] } });
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar à base' }));
 
-    expect(screen.getByRole('button', { name: 'Processando…' })).toBeDisabled();
-    await act(async () => vi.runAllTimersAsync());
-    expect(screen.getAllByText('empresa.txt')).toHaveLength(1);
-    expect(screen.getByText(/foi adicionado à demonstração/)).toBeInTheDocument();
+    expect(await screen.findByText('empresa.txt')).toBeInTheDocument();
+    expect(uploadDocument).toHaveBeenCalledWith(file);
+    expect(screen.getByText('empresa.txt foi indexado com sucesso.')).toBeInTheDocument();
   });
 
-  it('rejeita um formato não suportado', () => {
+  it('rejeita um formato não suportado antes de chamar a API', async () => {
     const { container } = render(<KnowledgeBasePage />);
     const file = new File(['a,b'], 'dados.csv', { type: 'text/csv' });
+    await screen.findByText('apresentacao-aurora.pdf');
 
     fireEvent.change(getFileInput(container), { target: { files: [file] } });
 
     expect(screen.getByText('Formato inválido. Use PDF, TXT, MD ou DOCX.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Adicionar à base' })).toBeDisabled();
+    expect(uploadDocument).not.toHaveBeenCalled();
   });
 
-  it('remove o último documento e apresenta o estado vazio', async () => {
+  it('remove um documento pela API e apresenta o estado vazio', async () => {
     const user = userEvent.setup();
     render(<KnowledgeBasePage />);
+    await screen.findByText('apresentacao-aurora.pdf');
 
     await user.click(screen.getByRole('button', { name: 'Remover apresentacao-aurora.pdf' }));
 
-    expect(window.confirm).toHaveBeenCalledOnce();
-    expect(screen.getByText('Nenhum documento adicionado')).toBeInTheDocument();
-    expect(screen.getByText('apresentacao-aurora.pdf foi removido.')).toBeInTheDocument();
+    await waitFor(() => expect(deleteDocument).toHaveBeenCalledWith('document-1'));
+    expect(await screen.findByText('Nenhum documento adicionado')).toBeInTheDocument();
   });
 });

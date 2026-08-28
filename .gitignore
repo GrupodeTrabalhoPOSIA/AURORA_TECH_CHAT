@@ -16,6 +16,8 @@ htmlcov/
 # Local application data
 backend/data/chroma/
 backend/data/uploads/
+BACKEND/data/chroma*/
+BACKEND/data/uploads/
 
 # Node.js and Vite
 node_modules/

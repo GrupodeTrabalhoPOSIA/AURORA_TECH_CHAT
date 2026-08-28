@@ -4,34 +4,34 @@ import {
   DocumentFeedbackBanner,
   DocumentList,
   DocumentUpload,
+  useDocuments,
 } from '@/features/documents';
-import type { DocumentFeedback, KnowledgeDocument } from '@/features/documents';
 
 const acceptedExtensions = new Set(['pdf', 'txt', 'md', 'docx']);
 const maxFileSize = 10 * 1024 * 1024;
-
-const initialDocuments: KnowledgeDocument[] = [
-  {
-    id: 'mock-institucional',
-    name: 'apresentacao-aurora.pdf',
-    type: 'pdf',
-    chunkCount: 8,
-    size: 184_320,
-  },
-];
 
 function getExtension(filename: string): string {
   return filename.split('.').pop()?.toLowerCase() ?? '';
 }
 
 function KnowledgeBasePage() {
-  const [documents, setDocuments] = useState<KnowledgeDocument[]>(initialDocuments);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [feedback, setFeedback] = useState<DocumentFeedback | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const {
+    documents,
+    isLoading,
+    isUploading,
+    deletingId,
+    feedback,
+    reload,
+    upload,
+    remove,
+    dismissFeedback,
+  } = useDocuments();
 
   const handleSelect = useCallback((file: File | null): void => {
-    setFeedback(null);
+    setValidationError(null);
+    dismissFeedback();
     if (!file) {
       setSelectedFile(null);
       return;
@@ -40,51 +40,35 @@ function KnowledgeBasePage() {
     const extension = getExtension(file.name);
     if (!acceptedExtensions.has(extension)) {
       setSelectedFile(null);
-      setFeedback({ kind: 'error', message: 'Formato inválido. Use PDF, TXT, MD ou DOCX.' });
+      setValidationError('Formato inválido. Use PDF, TXT, MD ou DOCX.');
       return;
     }
     if (file.size > maxFileSize) {
       setSelectedFile(null);
-      setFeedback({ kind: 'error', message: 'O arquivo deve ter no máximo 10 MB.' });
+      setValidationError('O arquivo deve ter no máximo 10 MB.');
       return;
     }
     setSelectedFile(file);
-  }, []);
+  }, [dismissFeedback]);
 
-  const handleUpload = useCallback((): void => {
+  const handleUpload = useCallback(async (): Promise<void> => {
     if (!selectedFile) {
       return;
     }
 
-    setIsUploading(true);
-    setFeedback(null);
-    window.setTimeout(() => {
-      const extension = getExtension(selectedFile.name) as KnowledgeDocument['type'];
-      const newDocument: KnowledgeDocument = {
-        id: `${selectedFile.name}-${selectedFile.lastModified}`,
-        name: selectedFile.name,
-        type: extension,
-        chunkCount: Math.max(1, Math.ceil(selectedFile.size / 700)),
-        size: selectedFile.size,
-      };
-      setDocuments((current) => [newDocument, ...current]);
+    const succeeded = await upload(selectedFile);
+    if (succeeded) {
       setSelectedFile(null);
-      setIsUploading(false);
-      setFeedback({
-        kind: 'success',
-        message: `${newDocument.name} foi adicionado à demonstração.`,
-      });
-    }, 700);
-  }, [selectedFile]);
+    }
+  }, [selectedFile, upload]);
 
-  const handleRemove = useCallback((document: KnowledgeDocument): void => {
+  const handleRemove = useCallback((document: (typeof documents)[number]): void => {
     const confirmed = window.confirm(`Remover "${document.name}" da base de conhecimento?`);
     if (!confirmed) {
       return;
     }
-    setDocuments((current) => current.filter((item) => item.id !== document.id));
-    setFeedback({ kind: 'success', message: `${document.name} foi removido.` });
-  }, []);
+    void remove(document);
+  }, [documents, remove]);
 
   return (
     <section className="knowledge-page" aria-labelledby="knowledge-title">
@@ -102,10 +86,15 @@ function KnowledgeBasePage() {
           selectedFile={selectedFile}
           isUploading={isUploading}
           onSelect={handleSelect}
-          onUpload={handleUpload}
+          onUpload={() => void handleUpload()}
         />
-        {feedback ? (
-          <DocumentFeedbackBanner feedback={feedback} onDismiss={() => setFeedback(null)} />
+        {validationError ? (
+          <DocumentFeedbackBanner
+            feedback={{ kind: 'error', message: validationError }}
+            onDismiss={() => setValidationError(null)}
+          />
+        ) : feedback ? (
+          <DocumentFeedbackBanner feedback={feedback} onDismiss={dismissFeedback} />
         ) : null}
         <div className="document-list-heading">
           <div>
@@ -114,7 +103,24 @@ function KnowledgeBasePage() {
           </div>
           <span className="document-count">{documents.length}</span>
         </div>
-        <DocumentList documents={documents} onRemove={handleRemove} />
+        {isLoading ? (
+          <div className="documents-loading" role="status">
+            Carregando documentos…
+          </div>
+        ) : feedback?.kind === 'error' && documents.length === 0 ? (
+          <div className="documents-retry">
+            <p>A lista não pôde ser carregada.</p>
+            <button className="primary-button" type="button" onClick={reload}>
+              Tentar novamente
+            </button>
+          </div>
+        ) : (
+          <DocumentList
+            documents={documents}
+            deletingId={deletingId}
+            onRemove={handleRemove}
+          />
+        )}
       </div>
     </section>
   );

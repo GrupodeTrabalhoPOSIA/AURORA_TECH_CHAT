@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 const acceptedFormats = '.pdf,.txt,.md,.docx';
 
@@ -16,6 +16,12 @@ function DocumentUpload({
   onUpload,
 }: DocumentUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!selectedFile && inputRef.current) {
+      inputRef.current.value = '';
+    }
+  }, [selectedFile]);
 
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -59,4 +65,3 @@ function DocumentUpload({
 }
 
 export default DocumentUpload;
-

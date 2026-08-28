@@ -45,7 +45,7 @@ Ao executar este plano, o agente deverá:
 - [x] Ciclo 05 — Backend: leitura e divisão de documentos
 - [x] Ciclo 06 — Frontend: tela da base de conhecimento
 - [x] Ciclo 07 — Backend: embeddings, ChromaDB e endpoints de documentos
-- [ ] Ciclo 08 — Frontend: integração da base de conhecimento
+- [x] Ciclo 08 — Frontend: integração da base de conhecimento
 - [ ] Ciclo 09 — Backend: recuperação RAG e OpenRouter
 - [ ] Ciclo 10 — Frontend: chat integrado
 - [ ] Ciclo 11 — Backend: robustez, testes e avaliação RAG
@@ -259,21 +259,21 @@ O ciclo estará concluído quando um documento puder ser indexado, listado e rem
 
 ### Implementação
 
-- [ ] Criar funções do cliente para enviar, listar e remover documentos.
-- [ ] Integrar o formulário de upload com `POST /api/v1/documents`.
-- [ ] Integrar a lista com `GET /api/v1/documents`.
-- [ ] Integrar a remoção com `DELETE /api/v1/documents/{document_id}`.
-- [ ] Atualizar a lista após envio ou remoção.
-- [ ] Exibir mensagens retornadas pelo backend.
-- [ ] Remover os dados simulados da tela de documentos.
+- [x] Criar funções do cliente para enviar, listar e remover documentos.
+- [x] Integrar o formulário de upload com `POST /api/v1/documents`.
+- [x] Integrar a lista com `GET /api/v1/documents`.
+- [x] Integrar a remoção com `DELETE /api/v1/documents/{document_id}`.
+- [x] Atualizar a lista após envio ou remoção.
+- [x] Exibir mensagens retornadas pelo backend.
+- [x] Remover os dados simulados da tela de documentos.
 
 ### Validação
 
-- [ ] Executar o fluxo completo de upload pela interface.
-- [ ] Confirmar que o documento continua listado após recarregar a página.
-- [ ] Executar o fluxo completo de remoção.
-- [ ] Confirmar tratamento de arquivo inválido e duplicado.
-- [ ] Registrar os comandos executados no diário.
+- [x] Executar o fluxo completo de upload pela interface.
+- [x] Confirmar que o documento continua listado após recarregar a página.
+- [x] Executar o fluxo completo de remoção.
+- [x] Confirmar tratamento de arquivo inválido e duplicado.
+- [x] Registrar os comandos executados no diário.
 
 ### Critério de conclusão
 
@@ -519,3 +519,12 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 - Validações: `python -m pytest -q` — 24 testes aprovados; ciclo completo de API, duplicidade, exclusão e reabertura do Chroma; modelo real `paraphrase-multilingual-MiniLM-L12-v2` carregado com vetor de dimensão 384 e norma 1.0.
 - Pendências: nenhuma no Ciclo 07.
 - Próximo ciclo: Ciclo 08 — Frontend: integração da base de conhecimento
+
+### 2026-08-27 — Ciclo 08
+
+- Status: concluído
+- Implementado: API frontend de documentos, adaptação dos contratos snake_case, hook com carregamento/mutações/erros, upload multipart real, listagem persistida e exclusão sem conteúdo; simulação removida.
+- Arquivos principais: `FRONTEND/src/features/documents/api/documentApi.ts`, `FRONTEND/src/features/documents/hooks/useDocuments.ts`, `FRONTEND/src/pages/KnowledgeBasePage.tsx`, `FRONTEND/src/services/apiClient.ts`, `FRONTEND/src/pages/KnowledgeBasePage.test.tsx`.
+- Validações: `npm test` — 4 testes aprovados; `npm run typecheck` e `npm run build` aprovados; API real na porta 8001 — upload HTTP 201, listagem com 1 documento, delete HTTP 204 e lista final vazia.
+- Pendências: nenhuma no Ciclo 08.
+- Próximo ciclo: Ciclo 09 — Backend: recuperação RAG e OpenRouter

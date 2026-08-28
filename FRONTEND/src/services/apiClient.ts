@@ -41,6 +41,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw await parseError(response);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return (await response.json()) as T;
 }
-

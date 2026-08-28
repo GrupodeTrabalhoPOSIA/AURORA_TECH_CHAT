@@ -2,6 +2,7 @@ import type { KnowledgeDocument } from '@/features/documents/types/document';
 
 interface DocumentListProps {
   documents: KnowledgeDocument[];
+  deletingId?: string | null;
   onRemove: (document: KnowledgeDocument) => void;
 }
 
@@ -12,7 +13,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
 
-function DocumentList({ documents, onRemove }: DocumentListProps) {
+function DocumentList({ documents, deletingId = null, onRemove }: DocumentListProps) {
   if (documents.length === 0) {
     return (
       <div className="empty-state empty-state--documents">
@@ -42,10 +43,11 @@ function DocumentList({ documents, onRemove }: DocumentListProps) {
           <button
             className="danger-button"
             type="button"
+            disabled={deletingId === document.id}
             aria-label={`Remover ${document.name}`}
             onClick={() => onRemove(document)}
           >
-            Remover
+            {deletingId === document.id ? 'Removendo…' : 'Remover'}
           </button>
         </article>
       ))}
@@ -54,4 +56,3 @@ function DocumentList({ documents, onRemove }: DocumentListProps) {
 }
 
 export default DocumentList;
-
