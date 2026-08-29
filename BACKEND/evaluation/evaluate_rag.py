@@ -6,7 +6,7 @@ from typing import TypedDict
 
 from app.core.config import Settings
 from app.services.documents import DocumentProcessor, DocumentService
-from app.services.embeddings import SentenceTransformerEmbeddingService
+from app.services.embeddings import OpenRouterEmbeddingService
 from app.services.rag import RetrievalService
 from tests.fakes import InMemoryVectorStore
 
@@ -27,8 +27,8 @@ def main() -> int:
     cases: list[EvaluationCase] = dataset["cases"]
     documents: list[EvaluationDocument] = dataset["documents"]
 
-    settings = Settings(_env_file=None)
-    embeddings = SentenceTransformerEmbeddingService(settings.embedding_model)
+    settings = Settings()
+    embeddings = OpenRouterEmbeddingService(settings)
     store = InMemoryVectorStore()
     document_service = DocumentService(
         processor=DocumentProcessor(settings),

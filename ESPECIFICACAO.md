@@ -16,7 +16,7 @@ O projeto será dividido em:
 - **Frontend:** React com TypeScript;
 - **Backend:** Python com FastAPI;
 - **Modelo de linguagem:** acessado pela OpenRouter;
-- **Embeddings:** modelo local compatível com português;
+- **Embeddings:** modelo remoto acessado pela OpenRouter;
 - **Banco vetorial:** Supabase Postgres com extensão pgvector.
 
 O sistema será simples, voltado à demonstração acadêmica e utilizado sem cadastro, login, perfis ou níveis de permissão.
@@ -98,7 +98,7 @@ Para manter o projeto acadêmico simples, não serão implementados inicialmente
 flowchart LR
     U[Usuário] --> F[Frontend React]
     F -->|HTTP/JSON| B[Backend FastAPI]
-    B --> E[Modelo de embeddings local]
+    B --> E[OpenRouter embeddings]
     E --> V[(Supabase / pgvector)]
     B --> V
     B --> O[OpenRouter API]
@@ -143,8 +143,8 @@ flowchart LR
 | Frontend | React + TypeScript + Vite | Configuração simples e boa experiência de desenvolvimento |
 | Backend | Python + FastAPI | API leve, validação automática e Swagger integrado |
 | LLM | OpenRouter API | Acesso a diferentes modelos por uma API única |
-| Embeddings | Sentence Transformers | Execução local sem custo por requisição |
-| Modelo inicial de embedding | `paraphrase-multilingual-MiniLM-L12-v2` | Suporte a português e tamanho adequado para demonstração |
+| Embeddings | OpenRouter API | Integração remota compartilhando a chave e o cliente HTTP do backend |
+| Modelo inicial de embedding | `openai/text-embedding-3-small` | Suporte multilíngue e dimensão configurável para `vector(384)` |
 | Banco vetorial | Supabase Postgres + pgvector | Persistência remota simples e compatível com hospedagem sem disco permanente |
 | Leitura de PDF | PyMuPDF | Extração simples de texto e número de página |
 | Leitura de DOCX | python-docx | Extração de conteúdo de documentos Word |
@@ -454,9 +454,10 @@ O backend deverá receber por variáveis de ambiente:
 - `OPENROUTER_API_KEY`: chave da OpenRouter;
 - `OPENROUTER_MODEL`: identificador do modelo de linguagem;
 - `FRONTEND_ORIGIN`: endereço permitido pelo CORS;
-- `EMBEDDING_MODEL`: modelo local de embeddings;
-- `SUPABASE_URL`: URL do projeto Supabase;
-- `SUPABASE_SECRET_KEY`: chave secreta usada somente pelo backend;
+- `OPENROUTER_EMBEDDING_MODEL`: modelo remoto de embeddings;
+- `EMBEDDING_DIMENSIONS`: quantidade de componentes esperada pelo pgvector;
+- `SUPABASE_DB_URL`: URI PostgreSQL do Session Pooler, usada somente pelo backend;
+- `SUPABASE_POOL_MIN_SIZE` e `SUPABASE_POOL_MAX_SIZE`: limites de sessões mantidas pelo processo;
 - `RETRIEVAL_TOP_K`: quantidade máxima de trechos recuperados.
 
 Os nomes poderão ser ajustados na implementação. O arquivo `.env.example` deverá conter somente valores de exemplo.
@@ -582,7 +583,7 @@ Antes da implementação, ainda deverão ser definidos:
 - A base conterá poucos documentos de tamanho moderado.
 - O português será o idioma principal.
 - O modelo de linguagem será acessado pela OpenRouter.
-- Os embeddings serão gerados localmente.
+- Os embeddings serão gerados pela API do OpenRouter.
 - O Supabase será acessado somente pelo backend e manterá os dados entre implantações.
 - A conversa não será salva no backend.
 - A implementação só começará após a validação desta especificação.

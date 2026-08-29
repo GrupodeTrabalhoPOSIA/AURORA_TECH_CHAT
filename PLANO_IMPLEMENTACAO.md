@@ -578,7 +578,15 @@ O agente deverá acrescentar uma entrada ao final desta seção depois de cada c
 ### 2026-08-28 — Migração técnica para Supabase
 
 - Status: código concluído e validado; aplicação da migração no projeto remoto pendente de credenciais.
-- Implementado: substituição do ChromaDB pelo Supabase Postgres com pgvector, interface desacoplada de armazenamento, indexação transacional via RPC, busca cosseno com limiar no banco, RLS, permissões exclusivas do backend, migração idempotente e script de reversão.
+- Implementado: substituição do ChromaDB pelo Supabase Postgres com pgvector, interface desacoplada de armazenamento, indexação transacional em função SQL, busca cosseno com limiar no banco, RLS, permissões exclusivas do backend, migração idempotente e script de reversão. O acesso de runtime usa Psycopg pelo Session Pooler.
 - Arquivos principais: `BACKEND/app/services/vector_store/`, `BACKEND/database/supabase/`, `BACKEND/app/core/config.py`, `BACKEND/tests/test_supabase_store.py`, `BACKEND/.env.example`.
-- Validações: `python -m pytest -q` — 46 testes aprovados; `python -m compileall -q app evaluation` — aprovado; `python -m pip check` — nenhuma dependência quebrada.
-- Pendências: executar `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql` no projeto Supabase e configurar `SUPABASE_URL` e `SUPABASE_SECRET_KEY` no serviço do backend.
+- Validações: `python -m pytest -q` — 48 testes aprovados; `python -m compileall -q app evaluation` — aprovado; `python -m pip check` — nenhuma dependência quebrada; construção e encerramento do pool Psycopg aprovados.
+- Pendências: executar `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql` no projeto Supabase e configurar `SUPABASE_DB_URL` com a URI do Session Pooler, porta 5432, no serviço do backend.
+
+### 2026-08-28 — Embeddings via OpenRouter
+
+- Status: código e imagem Docker concluídos e validados; reindexação dos documentos remotos pendente.
+- Implementado: substituição do Sentence Transformers local pelo endpoint de embeddings do OpenRouter, lotes configuráveis, vetores de 384 dimensões, validação estrita da resposta, mapeamento seguro de erros e execução da indexação fora do loop assíncrono. PyTorch e Sentence Transformers foram removidos da imagem.
+- Arquivos principais: `BACKEND/app/services/embeddings/openrouter.py`, `BACKEND/app/api/dependencies.py`, `BACKEND/app/core/config.py`, `BACKEND/tests/test_openrouter_embeddings.py`, `BACKEND/Dockerfile`.
+- Validações: `python -m pytest -q` — 61 testes aprovados; `python -m compileall -q app evaluation` — aprovado; imagem Docker construída com 99 MB, endpoint de saúde aprovado e ausência de PyTorch confirmada.
+- Pendências: configurar `OPENROUTER_API_KEY` no Render, reindexar todos os documentos existentes e executar a avaliação RAG para recalibrar o limiar de relevância; embeddings produzidos por modelos diferentes não podem ser misturados.

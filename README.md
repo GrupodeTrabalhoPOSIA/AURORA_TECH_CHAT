@@ -1,6 +1,6 @@
 # Aurora Tech Chatbot
 
-MVP acadêmico de um chatbot RAG para responder perguntas sobre a empresa fictícia Aurora Tech. Os documentos são transformados em embeddings locais, persistidos no Supabase com `pgvector` e recuperados antes de cada resposta gerada por um modelo acessado pela API do OpenRouter.
+MVP acadêmico de um chatbot RAG para responder perguntas sobre a empresa fictícia Aurora Tech. Os documentos são transformados em embeddings pela API do OpenRouter, persistidos no Supabase com `pgvector` e recuperados antes de cada resposta gerada por um modelo acessado pelo mesmo provedor.
 
 O projeto não possui autenticação, perfis de usuário nem persistência de conversas. O histórico curto existe somente na página aberta no navegador.
 
@@ -10,23 +10,21 @@ O projeto não possui autenticação, perfis de usuário nem persistência de co
 React + TypeScript
         │ HTTP /api/v1
         ▼
-FastAPI ──► extração e chunking ──► Sentence Transformers ──► Supabase / pgvector
-   │                                                         │
-   └──────── pergunta + contexto recuperado ◄────────────────┘
-                         │
-                         ▼
-                  OpenRouter / LLM
+FastAPI ──► extração e chunking ──► OpenRouter / embeddings ──► Supabase / pgvector
+   │                                                               │
+   └──────────── pergunta + contexto recuperado ◄──────────────────┘
+                              │
+                              ▼
+                       OpenRouter / LLM
 ```
 
 ## Requisitos
 
 - Python 3.11 a 3.14;
 - Node.js 20.19+ ou 22.12+;
-- uma chave da OpenRouter para gerar respostas;
+- uma chave da OpenRouter para gerar embeddings e respostas;
 - um projeto Supabase para armazenar documentos e embeddings;
-- cerca de 2 GB livres para dependências e cache do modelo de embeddings.
-
-Na primeira execução, o Sentence Transformers baixa o modelo multilíngue configurado. Depois disso, os embeddings são gerados localmente.
+- acesso de rede do backend ao OpenRouter e ao Session Pooler do Supabase.
 
 ## Instalação do backend
 
@@ -45,11 +43,12 @@ No painel do Supabase, abra **SQL Editor** e execute o arquivo `BACKEND/database
 
 ```dotenv
 OPENROUTER_API_KEY=sua-chave-local
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SECRET_KEY=sb_secret_sua-chave
+SUPABASE_DB_URL=postgresql://postgres.PROJECT_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres
 ```
 
-Não versione esse arquivo. Use a chave **Secret** do Supabase, ou `SUPABASE_SERVICE_ROLE_KEY` apenas em projetos legados. Essas chaves ficam somente no backend. Sem as credenciais do banco, as rotas de documentos e chat retornam `DATABASE_NOT_CONFIGURED`; sem a chave OpenRouter, uma pergunta com contexto retorna `MODEL_NOT_CONFIGURED`.
+Copie a URI em **Connect → Session pooler** no painel do Supabase. Ela deve usar o host `pooler.supabase.com`, o usuário `postgres.PROJECT_REF` e a porta `5432`. Substitua o marcador pela senha do banco; caracteres especiais na senha precisam estar codificados para URL.
+
+Não versione esse arquivo. A URI contém a senha do banco e fica somente no backend. Sem ela, as rotas de documentos e chat retornam `DATABASE_NOT_CONFIGURED`; sem a chave OpenRouter, a indexação e a consulta retornam `EMBEDDINGS_NOT_CONFIGURED`.
 
 Inicie a API:
 
@@ -111,7 +110,7 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 
 ## Configuração RAG adotada
 
-- embeddings: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`;
+- embeddings: `openai/text-embedding-3-small`, via OpenRouter, reduzido para 384 dimensões;
 - chunks de 700 caracteres, com sobreposição de 100;
 - até 5 trechos por busca;
 - relevância mínima de 0,35;
@@ -120,16 +119,34 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 
 Todos esses valores podem ser alterados em `BACKEND/.env`. A justificativa e o conjunto de perguntas estão em `BACKEND/evaluation/`.
 
-O modelo padrão gera vetores com 384 dimensões, que corresponde ao tipo `vector(384)` da migração. Alterar o modelo exige uma nova migração e a reindexação dos documentos.
+O serviço solicita vetores com 384 dimensões, correspondentes ao tipo `vector(384)` da migração. Trocar o modelo exige reindexar todos os documentos, mesmo quando a dimensão for mantida, pois modelos diferentes geram espaços vetoriais incompatíveis. Alterar a dimensão também exige uma nova migração.
 
 ## Configuração em produção
+
+### Frontend na Vercel
+
+O repositório inclui configuração para os dois formatos de projeto aceitos pela Vercel:
+
+- configuração recomendada no painel: **Root Directory = `FRONTEND`**;
+- se a Root Directory ficar vazia, o `vercel.json` da raiz executa a instalação e o build dentro de `FRONTEND` e publica `FRONTEND/dist`.
+
+Configure na Vercel:
+
+```dotenv
+VITE_API_URL=https://SEU-BACKEND.onrender.com/api/v1
+```
+
+Framework Preset deve ser **Vite** e o Output Directory deve ser `dist` quando `FRONTEND` estiver configurada como Root Directory. Depois de alterar essas opções ou a variável, execute um novo deploy de produção.
+
+### Backend
 
 No serviço que executa o FastAPI, configure como segredos:
 
 ```dotenv
 OPENROUTER_API_KEY=...
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SECRET_KEY=sb_secret_...
+OPENROUTER_EMBEDDING_MODEL=openai/text-embedding-3-small
+EMBEDDING_DIMENSIONS=384
+SUPABASE_DB_URL=postgresql://postgres.PROJECT_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres
 FRONTEND_ORIGIN=https://aurora-tech-chat.vercel.app
 ```
 
@@ -142,11 +159,10 @@ Backend:
 ```powershell
 cd BACKEND
 python -m pytest -q
-$env:HF_HUB_OFFLINE='1'
 python evaluation/evaluate_rag.py
 ```
 
-Remova `HF_HUB_OFFLINE` se o modelo ainda precisar ser baixado.
+A avaliação usa o endpoint real de embeddings e, portanto, consome créditos da chave configurada em `BACKEND/.env`.
 
 Frontend:
 
@@ -161,7 +177,8 @@ npm run build
 ## Dados e segurança
 
 - `.env`, ambientes virtuais, `node_modules` e builds são ignorados pelo Git;
-- as chaves OpenRouter e Supabase permanecem apenas no backend e nunca são enviadas ao React;
+- a chave OpenRouter e a URI PostgreSQL permanecem apenas no backend e nunca são enviadas ao React;
+- o texto dos documentos e das perguntas é enviado ao OpenRouter para gerar embeddings; não envie material sensível sem revisar a política do provedor;
 - logs registram método, rota, status e duração, sem corpos ou cabeçalhos;
 - respostas Markdown são renderizadas com sanitização;
 - documentos e embeddings ficam no Postgres do Supabase, protegidos por RLS e sem acesso para os papéis públicos.

@@ -56,17 +56,12 @@ if errorlevel 1 (
 )
 
 set "AURORA_SUPABASE_MISSING="
-findstr /R /C:"^SUPABASE_URL=." "%AURORA_BACKEND_ENV%" >nul 2>&1
+findstr /R /C:"^SUPABASE_DB_URL=." "%AURORA_BACKEND_ENV%" >nul 2>&1
 if errorlevel 1 set "AURORA_SUPABASE_MISSING=1"
 
-findstr /R /C:"^SUPABASE_SECRET_KEY=." "%AURORA_BACKEND_ENV%" >nul 2>&1
-if errorlevel 1 (
-    findstr /R /C:"^SUPABASE_SERVICE_ROLE_KEY=." "%AURORA_BACKEND_ENV%" >nul 2>&1
-    if errorlevel 1 set "AURORA_SUPABASE_MISSING=1"
-)
-
 if defined AURORA_SUPABASE_MISSING (
-    echo [AVISO] SUPABASE_URL e a chave secreta ainda nao foram preenchidas.
+    echo [AVISO] SUPABASE_DB_URL ainda nao foi preenchida.
+    echo         Copie a URI do Session Pooler, na porta 5432, no painel Supabase.
     echo         Configure BACKEND\.env antes de usar documentos e chat.
     echo.
 )

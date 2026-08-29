@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 
 from app.api.dependencies import get_document_service
 from app.core.config import get_settings
@@ -24,6 +25,9 @@ DocumentServiceDependency = Annotated[DocumentService, Depends(get_document_serv
         413: {"model": ErrorResponse, "description": "Arquivo acima do limite."},
         415: {"model": ErrorResponse, "description": "Formato inválido."},
         422: {"model": ErrorResponse, "description": "Conteúdo inválido ou vazio."},
+        502: {"model": ErrorResponse, "description": "Falha no provedor de embeddings."},
+        503: {"model": ErrorResponse, "description": "Embeddings não configurados."},
+        504: {"model": ErrorResponse, "description": "Geração de embeddings excedeu o tempo."},
     },
     summary="Indexar um documento",
 )
@@ -31,10 +35,11 @@ async def upload_document(
     service: DocumentServiceDependency,
     file: Annotated[UploadFile, File(description="PDF, TXT, Markdown ou DOCX")],
 ) -> DocumentResponse:
-    """Processa o arquivo de forma síncrona, adequada ao volume acadêmico."""
+    """Processa e indexa o arquivo fora do loop assíncrono da API."""
     settings = get_settings()
     content = await file.read(settings.max_upload_size_mb * 1024 * 1024 + 1)
-    return service.index_document(
+    return await run_in_threadpool(
+        service.index_document,
         filename=file.filename or "",
         content=content,
         content_type=file.content_type,
@@ -54,4 +59,3 @@ async def list_documents(service: DocumentServiceDependency) -> list[DocumentRes
 )
 async def delete_document(document_id: str, service: DocumentServiceDependency) -> None:
     service.delete_document(document_id)
-

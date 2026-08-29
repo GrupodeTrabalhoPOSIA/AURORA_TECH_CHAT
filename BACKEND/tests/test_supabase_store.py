@@ -1,16 +1,20 @@
-"""Testes do adaptador Supabase sem acessar a rede."""
+"""Testes do adaptador Session Pooler sem acessar a rede."""
 
-from types import SimpleNamespace
-from unittest.mock import Mock
+from datetime import UTC, datetime
+from unittest.mock import MagicMock
 
-from postgrest import APIError
 import pytest
+from psycopg.errors import UniqueViolation
 
 from app.core.config import Settings
 from app.core.errors import AppError
 from app.services.documents import DocumentProcessor
 from app.services.vector_store import SupabaseVectorStore
 from tests.fakes import FakeEmbeddingService
+
+DATABASE_URL = (
+    "postgresql://postgres.project:password@aws-0-region.pooler.supabase.com:5432/postgres"
+)
 
 
 def make_document():
@@ -22,40 +26,51 @@ def make_document():
     )
 
 
-def test_indexes_document_atomically_through_rpc() -> None:
+def make_pool(
+    *,
+    fetchone: object = None,
+    fetchall: list[dict[str, object]] | None = None,
+) -> tuple[MagicMock, MagicMock]:
+    cursor = MagicMock()
+    cursor.fetchone.return_value = fetchone
+    cursor.fetchall.return_value = fetchall or []
+    connection = MagicMock()
+    connection.cursor.return_value.__enter__.return_value = cursor
+    pool = MagicMock()
+    pool.connection.return_value.__enter__.return_value = connection
+    return pool, cursor
+
+
+def test_indexes_document_atomically_through_postgres_function() -> None:
     document = make_document()
     embeddings = FakeEmbeddingService().embed_documents(
         [chunk.content for chunk in document.chunks]
     )
-    client = Mock()
-    client.rpc.return_value.execute.return_value = SimpleNamespace(
-        data=[
-            {
-                "id": document.id,
-                "name": document.name,
-                "document_type": document.document_type,
-                "chunk_count": 1,
-                "file_size": document.file_size,
-                "created_at": "2026-08-28T12:00:00Z",
-            }
-        ]
+    pool, cursor = make_pool(
+        fetchone={
+            "id": document.id,
+            "name": document.name,
+            "document_type": document.document_type,
+            "chunk_count": 1,
+            "file_size": document.file_size,
+            "created_at": datetime(2026, 8, 28, 12, 0, tzinfo=UTC),
+        }
     )
-    store = SupabaseVectorStore("https://project.supabase.co", "secret", client=client)
+    store = SupabaseVectorStore(DATABASE_URL, pool=pool)
 
     indexed = store.add_document(document, embeddings)
 
-    function_name, payload = client.rpc.call_args.args
-    assert function_name == "index_aurora_document"
-    assert payload["p_content_hash"] == document.content_hash
-    assert payload["p_chunks"][0]["embedding"] == embeddings[0]
+    query, parameters = cursor.execute.call_args.args
+    assert "public.index_aurora_document" in query
+    assert parameters[0] == document.id
+    assert parameters[3] == document.content_hash
     assert indexed.id == document.id
     assert indexed.chunk_count == 1
 
 
 def test_search_passes_threshold_to_pgvector_and_maps_source() -> None:
-    client = Mock()
-    client.rpc.return_value.execute.return_value = SimpleNamespace(
-        data=[
+    pool, cursor = make_pool(
+        fetchall=[
             {
                 "document_id": "5d5d6b09-9444-4cf6-b3da-b3e663983dfa",
                 "document_name": "servicos.txt",
@@ -66,38 +81,34 @@ def test_search_passes_threshold_to_pgvector_and_maps_source() -> None:
             }
         ]
     )
-    store = SupabaseVectorStore("https://project.supabase.co", "secret", client=client)
+    store = SupabaseVectorStore(DATABASE_URL, pool=pool)
 
     chunks = store.search([0.1, 0.2, 0.3], limit=5, min_relevance=0.35)
 
-    function_name, payload = client.rpc.call_args.args
-    assert function_name == "match_aurora_chunks"
-    assert payload["match_count"] == 5
-    assert payload["match_threshold"] == 0.35
+    query, parameters = cursor.execute.call_args.args
+    assert "public.match_aurora_chunks" in query
+    assert parameters == ("[0.1,0.2,0.3]", 0.35, 5)
     assert chunks[0].document_name == "servicos.txt"
     assert chunks[0].relevance == 0.87
 
 
-def test_lists_documents_from_supabase() -> None:
-    client = Mock()
-    query = client.table.return_value.select.return_value.order.return_value
-    query.execute.return_value = SimpleNamespace(
-        data=[
+def test_lists_documents_from_session_pooler() -> None:
+    pool, _ = make_pool(
+        fetchall=[
             {
                 "id": "5d5d6b09-9444-4cf6-b3da-b3e663983dfa",
                 "name": "empresa.md",
                 "document_type": "md",
                 "chunk_count": 2,
                 "file_size": 321,
-                "created_at": "2026-08-28T12:00:00+00:00",
+                "created_at": datetime(2026, 8, 28, 12, 0, tzinfo=UTC),
             }
         ]
     )
-    store = SupabaseVectorStore("https://project.supabase.co", "secret", client=client)
+    store = SupabaseVectorStore(DATABASE_URL, pool=pool)
 
     documents = store.list_documents()
 
-    client.table.assert_called_once_with("aurora_documents")
     assert documents[0].name == "empresa.md"
     assert documents[0].chunk_count == 2
 
@@ -107,14 +118,21 @@ def test_duplicate_constraint_is_exposed_as_domain_error() -> None:
     embeddings = FakeEmbeddingService().embed_documents(
         [chunk.content for chunk in document.chunks]
     )
-    client = Mock()
-    client.rpc.return_value.execute.side_effect = APIError(
-        {"message": "duplicate", "code": "23505", "hint": None, "details": None}
-    )
-    store = SupabaseVectorStore("https://project.supabase.co", "secret", client=client)
+    pool, cursor = make_pool()
+    cursor.execute.side_effect = UniqueViolation("duplicate")
+    store = SupabaseVectorStore(DATABASE_URL, pool=pool)
 
     with pytest.raises(AppError) as captured:
         store.add_document(document, embeddings)
 
     assert captured.value.status_code == 409
     assert captured.value.code == "DUPLICATE_DOCUMENT"
+
+
+def test_close_releases_pool_connections() -> None:
+    pool, _ = make_pool()
+    store = SupabaseVectorStore(DATABASE_URL, pool=pool)
+
+    store.close()
+
+    pool.close.assert_called_once_with()

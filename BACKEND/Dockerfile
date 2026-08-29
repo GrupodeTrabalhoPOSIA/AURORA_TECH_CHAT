@@ -13,7 +13,6 @@ COPY pyproject.toml ./
 COPY app ./app
 
 RUN pip install --upgrade pip && \
-    pip install --index-url https://download.pytorch.org/whl/cpu torch && \
     pip install .
 
 

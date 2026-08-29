@@ -13,6 +13,9 @@ def test_settings_have_safe_academic_defaults() -> None:
     assert settings.retrieval_top_k == 5
     assert settings.max_upload_size_mb == 10
     assert settings.openrouter_api_key is None
+    assert settings.openrouter_embedding_model == "openai/text-embedding-3-small"
+    assert settings.embedding_dimensions == 384
+    assert settings.embedding_batch_size == 64
 
 
 def test_openrouter_key_is_masked() -> None:
@@ -30,35 +33,48 @@ def test_openrouter_key_is_validated_only_when_used() -> None:
         settings.require_openrouter_api_key()
 
 
-def test_supabase_credentials_are_masked_and_required_together() -> None:
+def test_supabase_session_pooler_url_is_masked() -> None:
     settings = Settings(
         _env_file=None,
-        supabase_url="https://project.supabase.co",
-        supabase_secret_key="segredo-do-banco",
+        supabase_db_url=(
+            "postgresql://postgres.project:segredo-do-banco@"
+            "aws-0-region.pooler.supabase.com:5432/postgres"
+        ),
     )
 
     assert "segredo-do-banco" not in repr(settings)
-    assert settings.require_supabase_credentials() == (
-        "https://project.supabase.co",
-        "segredo-do-banco",
+    assert settings.require_supabase_database_url().startswith(
+        "postgresql://postgres.project:"
     )
 
 
-def test_legacy_supabase_service_role_key_remains_supported() -> None:
-    settings = Settings(
-        _env_file=None,
-        supabase_url="https://project.supabase.co",
-        supabase_service_role_key="chave-legada",
-    )
-
-    assert settings.require_supabase_credentials()[1] == "chave-legada"
-
-
-def test_supabase_credentials_are_validated_only_when_used() -> None:
+def test_supabase_database_url_is_validated_only_when_used() -> None:
     settings = Settings(_env_file=None)
 
-    with pytest.raises(ValueError, match="SUPABASE_URL"):
-        settings.require_supabase_credentials()
+    with pytest.raises(ValueError, match="SUPABASE_DB_URL"):
+        settings.require_supabase_database_url()
+
+
+def test_supabase_transaction_pooler_is_rejected() -> None:
+    settings = Settings(
+        _env_file=None,
+        supabase_db_url=(
+            "postgresql://postgres.project:password@"
+            "aws-0-region.pooler.supabase.com:6543/postgres"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="Session Pooler"):
+        settings.require_supabase_database_url()
+
+
+def test_supabase_pool_minimum_cannot_exceed_maximum() -> None:
+    with pytest.raises(ValidationError, match="SUPABASE_POOL_MIN_SIZE"):
+        Settings(
+            _env_file=None,
+            supabase_pool_min_size=6,
+            supabase_pool_max_size=5,
+        )
 
 
 def test_chunk_overlap_must_be_smaller_than_chunk_size() -> None:
