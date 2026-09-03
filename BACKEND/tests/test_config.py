@@ -13,8 +13,8 @@ def test_settings_have_safe_academic_defaults() -> None:
     assert settings.retrieval_top_k == 5
     assert settings.max_upload_size_mb == 10
     assert settings.openrouter_api_key is None
-    assert settings.openrouter_embedding_model == "openai/text-embedding-3-small"
-    assert settings.embedding_dimensions == 384
+    assert settings.openrouter_embedding_model == "mistralai/mistral-embed-2312"
+    assert settings.embedding_dimensions == 1024
     assert settings.embedding_batch_size == 64
 
 
@@ -24,6 +24,11 @@ def test_openrouter_key_is_masked() -> None:
     assert isinstance(settings.openrouter_api_key, SecretStr)
     assert "segredo-de-teste" not in repr(settings)
     assert settings.require_openrouter_api_key() == "segredo-de-teste"
+
+
+def test_mistral_requires_1024_dimensions() -> None:
+    with pytest.raises(ValidationError, match="EMBEDDING_DIMENSIONS=1024"):
+        Settings(_env_file=None, embedding_dimensions=384)
 
 
 def test_openrouter_key_is_validated_only_when_used() -> None:

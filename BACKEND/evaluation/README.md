@@ -13,7 +13,7 @@ Em 27/08/2026, ainda com o modelo local anterior, `python evaluation/evaluate_ra
 
 ## Parâmetros finais
 
-- modelo: `openai/text-embedding-3-small`, via OpenRouter, com 384 dimensões;
+- modelo: `mistralai/mistral-embed-2312`, via OpenRouter, com 1024 dimensões;
 - tamanho do chunk: 700 caracteres;
 - sobreposição: 100 caracteres;
 - `top_k`: 5;

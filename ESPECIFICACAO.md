@@ -144,7 +144,7 @@ flowchart LR
 | Backend | Python + FastAPI | API leve, validação automática e Swagger integrado |
 | LLM | OpenRouter API | Acesso a diferentes modelos por uma API única |
 | Embeddings | OpenRouter API | Integração remota compartilhando a chave e o cliente HTTP do backend |
-| Modelo inicial de embedding | `openai/text-embedding-3-small` | Suporte multilíngue e dimensão configurável para `vector(384)` |
+| Modelo de embedding | `mistralai/mistral-embed-2312` | Embeddings de texto com dimensão fixa para `vector(1024)` |
 | Banco vetorial | Supabase Postgres + pgvector | Persistência remota simples e compatível com hospedagem sem disco permanente |
 | Leitura de PDF | PyMuPDF | Extração simples de texto e número de página |
 | Leitura de DOCX | python-docx | Extração de conteúdo de documentos Word |

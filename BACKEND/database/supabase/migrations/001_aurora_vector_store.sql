@@ -134,11 +134,11 @@ as $function$
         chunk.content,
         chunk.chunk_index,
         chunk.page,
-        (1 - (chunk.embedding <=> query_embedding))::double precision as similarity
+        (1 - (chunk.embedding operator(extensions.<=>) query_embedding))::double precision as similarity
     from public.aurora_document_chunks as chunk
     inner join public.aurora_documents as document on document.id = chunk.document_id
-    where 1 - (chunk.embedding <=> query_embedding) >= match_threshold
-    order by chunk.embedding <=> query_embedding
+    where 1 - (chunk.embedding operator(extensions.<=>) query_embedding) >= match_threshold
+    order by chunk.embedding operator(extensions.<=>) query_embedding
     limit least(greatest(match_count, 1), 20);
 $function$;
 

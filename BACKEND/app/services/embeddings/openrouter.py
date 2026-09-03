@@ -50,14 +50,20 @@ class OpenRouterEmbeddingService:
             ) as client:
                 for start in range(0, len(texts), self.settings.embedding_batch_size):
                     batch = texts[start : start + self.settings.embedding_batch_size]
+                    payload: dict[str, object] = {
+                        "model": self.settings.openrouter_embedding_model,
+                        "input": batch,
+                    }
+                    # Mistral Embed possui dimensão fixa; não solicitar redução.
+                    if (
+                        self.settings.openrouter_embedding_model
+                        != "mistralai/mistral-embed-2312"
+                    ):
+                        payload["dimensions"] = self.settings.embedding_dimensions
                     response = client.post(
                         OPENROUTER_EMBEDDINGS_URL,
                         headers=headers,
-                        json={
-                            "model": self.settings.openrouter_embedding_model,
-                            "input": batch,
-                            "dimensions": self.settings.embedding_dimensions,
-                        },
+                        json=payload,
                     )
                     self._raise_for_provider_error(response.status_code)
                     embeddings.extend(self._parse_response(response, len(batch)))

@@ -29,8 +29,8 @@ class Settings(BaseSettings):
     openrouter_temperature: float = Field(default=0.1, ge=0, le=2)
     openrouter_referer: str = "http://localhost:5173"
     openrouter_app_title: str = "Aurora Tech Chatbot"
-    openrouter_embedding_model: str = "openai/text-embedding-3-small"
-    embedding_dimensions: int = Field(default=384, ge=1, le=3072)
+    openrouter_embedding_model: str = "mistralai/mistral-embed-2312"
+    embedding_dimensions: int = Field(default=1024, ge=1, le=3072)
     embedding_batch_size: int = Field(default=64, ge=1, le=256)
 
     supabase_db_url: SecretStr | None = None
@@ -62,6 +62,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_chunk_configuration(self) -> "Settings":
         """Valida relações entre limites configuráveis."""
+        if (
+            self.openrouter_embedding_model == "mistralai/mistral-embed-2312"
+            and self.embedding_dimensions != 1024
+        ):
+            raise ValueError("Mistral Embed 2312 exige EMBEDDING_DIMENSIONS=1024.")
         if self.chunk_overlap >= self.chunk_size:
             raise ValueError("CHUNK_OVERLAP deve ser menor que CHUNK_SIZE.")
         if self.supabase_pool_min_size > self.supabase_pool_max_size:

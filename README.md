@@ -39,7 +39,7 @@ python -m pip install -e ".[dev]"
 Copy-Item .env.example .env
 ```
 
-No painel do Supabase, abra **SQL Editor** e execute o arquivo `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql`. Depois, edite `BACKEND/.env` e preencha:
+No painel do Supabase, abra **SQL Editor** e execute `BACKEND/database/supabase/migrations/001_aurora_vector_store.sql` e depois `002_mistral_embeddings_1024.sql` da mesma pasta. Se a primeira migração já foi aplicada, execute somente a segunda, com a base vazia. Depois, edite `BACKEND/.env` e preencha:
 
 ```dotenv
 OPENROUTER_API_KEY=sua-chave-local
@@ -110,7 +110,7 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 
 ## Configuração RAG adotada
 
-- embeddings: `openai/text-embedding-3-small`, via OpenRouter, reduzido para 384 dimensões;
+- embeddings: `mistralai/mistral-embed-2312`, via OpenRouter, com 1024 dimensões fixas;
 - chunks de 700 caracteres, com sobreposição de 100;
 - até 5 trechos por busca;
 - relevância mínima de 0,35;
@@ -119,7 +119,7 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 
 Todos esses valores podem ser alterados em `BACKEND/.env`. A justificativa e o conjunto de perguntas estão em `BACKEND/evaluation/`.
 
-O serviço solicita vetores com 384 dimensões, correspondentes ao tipo `vector(384)` da migração. Trocar o modelo exige reindexar todos os documentos, mesmo quando a dimensão for mantida, pois modelos diferentes geram espaços vetoriais incompatíveis. Alterar a dimensão também exige uma nova migração.
+O serviço valida vetores de 1024 dimensões, correspondentes ao tipo `vector(1024)` após a migração 002. O cliente não envia o parâmetro opcional de redução de dimensão ao Mistral. Trocar o modelo exige reindexar todos os documentos, mesmo quando a dimensão for mantida, pois modelos diferentes geram espaços vetoriais incompatíveis. Alterar a dimensão também exige uma nova migração.
 
 ## Configuração em produção
 
@@ -144,8 +144,8 @@ No serviço que executa o FastAPI, configure como segredos:
 
 ```dotenv
 OPENROUTER_API_KEY=...
-OPENROUTER_EMBEDDING_MODEL=openai/text-embedding-3-small
-EMBEDDING_DIMENSIONS=384
+OPENROUTER_EMBEDDING_MODEL=mistralai/mistral-embed-2312
+EMBEDDING_DIMENSIONS=1024
 SUPABASE_DB_URL=postgresql://postgres.PROJECT_REF:SENHA@aws-0-REGIAO.pooler.supabase.com:5432/postgres
 FRONTEND_ORIGIN=https://aurora-tech-chat.vercel.app
 ```

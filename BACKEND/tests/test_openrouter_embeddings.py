@@ -12,6 +12,7 @@ from app.services.embeddings.openrouter import OpenRouterEmbeddingService
 
 
 def make_settings(**overrides: object) -> Settings:
+    overrides.setdefault("openrouter_embedding_model", "openai/text-embedding-3-small")
     return Settings(
         _env_file=None,
         openrouter_api_key=SecretStr("segredo-de-teste"),
@@ -85,10 +86,44 @@ def test_embed_query_returns_the_single_vector() -> None:
     assert service.embed_query("consulta") == [0.1, 0.2, 0.3]
 
 
+def test_mistral_uses_fixed_dimensions_for_documents_and_queries() -> None:
+    inputs = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = json.loads(request.content)
+        assert payload["model"] == "mistralai/mistral-embed-2312"
+        assert "dimensions" not in payload
+        inputs.append(payload["input"])
+        return httpx.Response(200, json={"data": [
+            {"index": i, "embedding": [0.1] * 1024}
+            for i in range(len(payload["input"]))
+        ]})
+
+    service = OpenRouterEmbeddingService(
+        Settings(_env_file=None, openrouter_api_key="chave-de-teste"),
+        transport=httpx.MockTransport(handler),
+    )
+    assert len(service.embed_documents(["trecho"])[0]) == 1024
+    assert len(service.embed_query("pergunta")) == 1024
+    assert inputs == [["trecho"], ["pergunta"]]
+
+
 def test_empty_document_batch_does_not_require_configuration() -> None:
     settings = Settings(_env_file=None, openrouter_api_key=None)
 
     assert OpenRouterEmbeddingService(settings).embed_documents([]) == []
+
+
+def test_mistral_rejects_vectors_with_the_old_dimension() -> None:
+    service = OpenRouterEmbeddingService(
+        Settings(_env_file=None, openrouter_api_key="chave-de-teste"),
+        transport=httpx.MockTransport(lambda _: httpx.Response(
+            200, json={"data": [{"index": 0, "embedding": [0.1] * 384}]}
+        )),
+    )
+    with pytest.raises(AppError) as captured:
+        service.embed_query("consulta")
+    assert captured.value.code == "EMBEDDINGS_INVALID_RESPONSE"
 
 
 def test_missing_key_returns_safe_configuration_error() -> None:
