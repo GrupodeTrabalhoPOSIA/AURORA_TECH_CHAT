@@ -4,7 +4,9 @@ import math
 from datetime import UTC, datetime
 
 from app.core.errors import AppError
-from app.models.documents import DocumentResponse, ProcessedDocument
+from app.models.documents import (
+    DocumentContentResponse, DocumentResponse, DocumentTextChunk, ProcessedDocument,
+)
 from app.models.rag import LLMMessage, RetrievedChunk
 
 
@@ -56,6 +58,22 @@ class InMemoryVectorStore:
             (item[0] for item in self.documents.values()),
             key=lambda item: item.created_at,
             reverse=True,
+        )
+
+    def get_document_content(self, document_id: str) -> DocumentContentResponse:
+        if not self.document_exists(document_id):
+            raise AppError(
+                status_code=404,
+                code="DOCUMENT_NOT_FOUND",
+                message="Documento não encontrado.",
+            )
+        return DocumentContentResponse(
+            id=document_id,
+            chunks=[
+                DocumentTextChunk(content=chunk[2], chunk_index=chunk[3], page=chunk[4])
+                for chunk in sorted(self.chunks, key=lambda item: item[3])
+                if chunk[0] == document_id
+            ],
         )
 
     def known_hashes(self) -> set[str]:

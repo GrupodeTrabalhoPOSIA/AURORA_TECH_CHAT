@@ -1,6 +1,7 @@
 import { apiRequest } from '@/services';
 import type {
   DocumentApiResponse,
+  DocumentContentResponse,
   KnowledgeDocument,
 } from '@/features/documents/types/document';
 
@@ -36,3 +37,12 @@ export async function deleteDocument(documentId: string): Promise<void> {
   });
 }
 
+export function getDocumentContent(
+  documentId: string,
+  signal?: AbortSignal,
+): Promise<DocumentContentResponse> {
+  return apiRequest<DocumentContentResponse>(
+    `/documents/${encodeURIComponent(documentId)}/content`,
+    { signal },
+  );
+}

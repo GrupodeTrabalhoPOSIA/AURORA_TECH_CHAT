@@ -44,3 +44,18 @@ class DocumentResponse(BaseModel):
     chunk_count: int = Field(ge=0)
     file_size: int = Field(ge=0)
     created_at: datetime
+
+
+class DocumentTextChunk(BaseModel):
+    """Texto indexado sem os vetores usados na busca."""
+
+    content: str
+    chunk_index: int = Field(ge=0)
+    page: int | None = None
+
+
+class DocumentContentResponse(BaseModel):
+    """Trechos persistidos de um documento, na ordem de leitura."""
+
+    id: str
+    chunks: list[DocumentTextChunk]

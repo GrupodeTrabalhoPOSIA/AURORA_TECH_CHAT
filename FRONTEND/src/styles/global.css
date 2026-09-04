@@ -635,6 +635,7 @@ h1 {
 
 .document-card {
   display: flex;
+  flex-wrap: wrap;
   padding: 15px;
   align-items: center;
   gap: 14px;
@@ -674,6 +675,36 @@ h1 {
   margin-bottom: 0;
   color: #7a898d;
   font-size: 0.78rem;
+}
+
+.document-text {
+  flex-basis: 100%;
+  min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(24, 83, 90, 0.11);
+}
+
+.document-text h3,
+.document-text h4 {
+  margin: 0 0 10px;
+  color: #2a474d;
+  font-size: 0.88rem;
+}
+
+.document-text__chunk {
+  margin-top: 14px;
+}
+
+.document-text .document-text__body {
+  color: #2a474d;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.document-text button {
+  margin-top: 12px;
 }
 
 .empty-state--documents {

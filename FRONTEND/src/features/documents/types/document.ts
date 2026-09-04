@@ -18,6 +18,12 @@ export interface DocumentApiResponse {
   created_at: string;
 }
 
+/** Texto persistido no backend, sem embeddings. */
+export interface DocumentContentResponse {
+  id: string;
+  chunks: { content: string; chunk_index: number; page: number | null }[];
+}
+
 /** Mensagem transitória exibida após uma ação. */
 export interface DocumentFeedback {
   kind: 'success' | 'error';

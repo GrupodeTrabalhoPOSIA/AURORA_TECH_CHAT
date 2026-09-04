@@ -118,15 +118,14 @@ describe('ChatPage integrada', () => {
     expect(sendChat).toHaveBeenCalledOnce();
   });
 
-  it('permite enviar pelo teclado', async () => {
+  it('permite enviar com Enter diretamente no campo de pergunta', async () => {
     vi.mocked(sendChat).mockResolvedValue(contextualResponse);
     const user = userEvent.setup();
     render(<ChatPage />);
 
     await user.click(screen.getByLabelText('Sua pergunta'));
     await user.keyboard('Pergunta pelo teclado');
-    await user.tab();
-    expect(screen.getByRole('button', { name: 'Enviar' })).toHaveFocus();
+    expect(screen.getByLabelText('Sua pergunta')).toHaveFocus();
     await user.keyboard('{Enter}');
 
     expect(await screen.findByText(contextualResponse.answer)).toBeInTheDocument();

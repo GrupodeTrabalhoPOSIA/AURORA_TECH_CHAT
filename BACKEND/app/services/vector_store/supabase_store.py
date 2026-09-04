@@ -12,7 +12,12 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool, PoolClosed, PoolTimeout
 
 from app.core.errors import AppError
-from app.models.documents import DocumentResponse, ProcessedDocument
+from app.models.documents import (
+    DocumentContentResponse,
+    DocumentResponse,
+    DocumentTextChunk,
+    ProcessedDocument,
+)
 from app.models.rag import RetrievedChunk
 
 
@@ -122,6 +127,36 @@ class SupabaseVectorStore:
         except (PsycopgError, PoolClosed, PoolTimeout) as error:
             raise self._database_error() from error
         return [self._document_from_row(row) for row in rows]
+
+    def get_document_content(self, document_id: str) -> DocumentContentResponse:
+        try:
+            with self.pool.connection() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        select c.content, c.chunk_index, c.page
+                        from public.aurora_documents d
+                        left join public.aurora_document_chunks c on c.document_id = d.id
+                        where d.id = %s::uuid
+                        order by c.chunk_index asc
+                        """,
+                        (document_id,),
+                    )
+                    rows = cursor.fetchall()
+        except (PsycopgError, PoolClosed, PoolTimeout) as error:
+            raise self._database_error() from error
+        if not rows:
+            raise AppError(
+                status_code=404,
+                code="DOCUMENT_NOT_FOUND",
+                message="Documento não encontrado.",
+            )
+        return DocumentContentResponse(
+            id=document_id,
+            chunks=[
+                DocumentTextChunk(**row) for row in rows if row["chunk_index"] is not None
+            ],
+        )
 
     def known_hashes(self) -> set[str]:
         try:

@@ -18,6 +18,21 @@ function ChatComposer({ disabled = false, isSending = false, onSubmit }: ChatCom
     setMessage('');
   }
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.nativeEvent.isComposing ||
+      event.nativeEvent.keyCode === 229
+    ) {
+      return;
+    }
+    event.preventDefault();
+    if (!event.repeat) {
+      event.currentTarget.form?.requestSubmit();
+    }
+  }
+
   return (
     <form className="composer" aria-label="Enviar uma pergunta" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="chat-message">
@@ -32,7 +47,12 @@ function ChatComposer({ disabled = false, isSending = false, onSubmit }: ChatCom
         maxLength={2000}
         value={message}
         onChange={(event) => setMessage(event.target.value)}
+        onKeyDown={handleKeyDown}
+        aria-describedby="chat-message-hint"
       />
+      <span id="chat-message-hint" className="sr-only">
+        Enter para enviar. Shift+Enter para uma nova linha.
+      </span>
       <button type="submit" disabled={disabled || isSending || !message.trim()}>
         {isSending ? 'Enviando…' : 'Enviar'}
       </button>

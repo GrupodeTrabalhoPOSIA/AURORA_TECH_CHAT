@@ -2,7 +2,7 @@
 
 from typing import Protocol
 
-from app.models.documents import DocumentResponse, ProcessedDocument
+from app.models.documents import DocumentContentResponse, DocumentResponse, ProcessedDocument
 from app.models.rag import RetrievedChunk
 
 
@@ -16,6 +16,8 @@ class VectorStore(Protocol):
     ) -> DocumentResponse: ...
 
     def list_documents(self) -> list[DocumentResponse]: ...
+
+    def get_document_content(self, document_id: str) -> DocumentContentResponse: ...
 
     def known_hashes(self) -> set[str]: ...
 

@@ -1,6 +1,6 @@
 """Orquestra processamento, embeddings e persistência de documentos."""
 
-from app.models.documents import DocumentResponse
+from app.models.documents import DocumentContentResponse, DocumentResponse
 from app.services.documents.processor import DocumentProcessor
 from app.services.embeddings import EmbeddingService
 from app.services.vector_store import VectorStore
@@ -40,6 +40,9 @@ class DocumentService:
 
     def list_documents(self) -> list[DocumentResponse]:
         return self.vector_store.list_documents()
+
+    def get_document_content(self, document_id: str) -> DocumentContentResponse:
+        return self.vector_store.get_document_content(document_id)
 
     def delete_document(self, document_id: str) -> None:
         self.vector_store.delete_document(document_id)

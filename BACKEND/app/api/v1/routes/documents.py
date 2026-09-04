@@ -1,13 +1,14 @@
 """Endpoints da base de conhecimento."""
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 
 from app.api.dependencies import get_document_service
 from app.core.config import get_settings
-from app.models.documents import DocumentResponse
+from app.models.documents import DocumentContentResponse, DocumentResponse
 from app.models.errors import ErrorResponse
 from app.services.documents import DocumentService
 
@@ -49,6 +50,21 @@ async def upload_document(
 @router.get("", response_model=list[DocumentResponse], summary="Listar documentos")
 async def list_documents(service: DocumentServiceDependency) -> list[DocumentResponse]:
     return service.list_documents()
+
+
+@router.get(
+    "/{document_id}/content",
+    response_model=DocumentContentResponse,
+    responses={
+        404: {"model": ErrorResponse, "description": "Documento inexistente."},
+        503: {"model": ErrorResponse, "description": "Base indisponível."},
+    },
+    summary="Ler o texto indexado de um documento",
+)
+def get_document_content(
+    document_id: UUID, service: DocumentServiceDependency,
+) -> DocumentContentResponse:
+    return service.get_document_content(str(document_id))
 
 
 @router.delete(

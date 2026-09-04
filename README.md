@@ -105,6 +105,7 @@ Quando nenhum trecho atinge o limiar de relevância, a API recusa a pergunta sem
 | `GET` | `/api/v1/health` | Verifica a API |
 | `POST` | `/api/v1/documents` | Processa e indexa um documento |
 | `GET` | `/api/v1/documents` | Lista documentos indexados |
+| `GET` | `/api/v1/documents/{id}/content` | Retorna os trechos de texto salvos, na ordem, sem embeddings |
 | `DELETE` | `/api/v1/documents/{id}` | Remove documento e chunks |
 | `POST` | `/api/v1/chat` | Recupera contexto e responde |
 

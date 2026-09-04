@@ -1,4 +1,5 @@
 import type { KnowledgeDocument } from '@/features/documents/types/document';
+import DocumentText from './DocumentText';
 
 interface DocumentListProps {
   documents: KnowledgeDocument[];
@@ -49,6 +50,9 @@ function DocumentList({ documents, deletingId = null, onRemove }: DocumentListPr
           >
             {deletingId === document.id ? 'Removendo…' : 'Remover'}
           </button>
+          {document.type === 'txt' && (
+            <DocumentText documentId={document.id} name={document.name} />
+          )}
         </article>
       ))}
     </div>

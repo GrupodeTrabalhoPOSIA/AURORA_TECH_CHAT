@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { KnowledgeDocument } from '@/features/documents';
 import {
   deleteDocument,
+  getDocumentContent,
   listDocuments,
   uploadDocument,
 } from '@/features/documents/api/documentApi';
@@ -15,6 +16,7 @@ vi.mock('@/features/documents/api/documentApi', () => ({
   listDocuments: vi.fn(),
   uploadDocument: vi.fn(),
   deleteDocument: vi.fn(),
+  getDocumentContent: vi.fn(),
 }));
 
 const document: KnowledgeDocument = {
@@ -47,6 +49,10 @@ describe('KnowledgeBasePage integrada', () => {
       size: 11,
     });
     vi.mocked(deleteDocument).mockResolvedValue(undefined);
+    vi.mocked(getDocumentContent).mockResolvedValue({
+      id: 'document-2',
+      chunks: [{ content: 'Aurora Tech', chunk_index: 0, page: null }],
+    });
     vi.spyOn(window, 'confirm').mockReturnValue(true);
   });
 
@@ -56,6 +62,7 @@ describe('KnowledgeBasePage integrada', () => {
     expect(screen.getByText('Carregando documentos…')).toBeInTheDocument();
     expect(await screen.findByText('apresentacao-aurora.pdf')).toBeInTheDocument();
     expect(listDocuments).toHaveBeenCalledOnce();
+    expect(getDocumentContent).not.toHaveBeenCalled();
   });
 
   it('envia um arquivo aceito e atualiza a lista', async () => {
@@ -67,8 +74,44 @@ describe('KnowledgeBasePage integrada', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar à base' }));
 
     expect(await screen.findByText('empresa.txt')).toBeInTheDocument();
+    expect(await screen.findByText('Aurora Tech')).toBeVisible();
     expect(uploadDocument).toHaveBeenCalledWith(file);
     expect(screen.getByText('empresa.txt foi indexado com sucesso.')).toBeInTheDocument();
+  });
+
+  it('mostra os trechos dos TXT salvos sem precisar abrir ou reenviar o arquivo', async () => {
+    vi.mocked(listDocuments).mockResolvedValue([{ ...document, type: 'txt', name: 'salvo.txt' }]);
+    vi.mocked(getDocumentContent).mockResolvedValue({
+      id: document.id,
+      chunks: [
+        { content: 'Primeiro parágrafo.\n\nSegunda linha.', chunk_index: 0, page: null },
+        { content: '<script>alert("texto")</script>', chunk_index: 1, page: null },
+      ],
+    });
+    const { container, unmount } = render(<KnowledgeBasePage />);
+
+    expect(await screen.findByText('Primeiro parágrafo. Segunda linha.')).toBeVisible();
+    expect(screen.getByText('Trecho 2')).toBeVisible();
+    expect(screen.getByText('<script>alert("texto")</script>')).toBeVisible();
+    expect(container.querySelector('script')).toBeNull();
+    expect(getDocumentContent).toHaveBeenCalledWith(document.id, expect.any(AbortSignal));
+
+    unmount();
+    render(<KnowledgeBasePage />);
+    expect(await screen.findByText('Primeiro parágrafo. Segunda linha.')).toBeVisible();
+    expect(getDocumentContent).toHaveBeenCalledTimes(2);
+  });
+
+  it('permite repetir a leitura do texto sem perder a lista', async () => {
+    vi.mocked(listDocuments).mockResolvedValue([{ ...document, type: 'txt', name: 'salvo.txt' }]);
+    vi.mocked(getDocumentContent).mockRejectedValueOnce(new Error('indisponível'));
+    const user = userEvent.setup();
+    render(<KnowledgeBasePage />);
+
+    expect(await screen.findByText('Não foi possível carregar o texto deste documento.')).toBeVisible();
+    expect(screen.getByText('salvo.txt')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Tentar carregar o texto novamente' }));
+    expect(await screen.findByText('Aurora Tech')).toBeVisible();
   });
 
   it('rejeita um formato não suportado antes de chamar a API', async () => {
